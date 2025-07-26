@@ -10,6 +10,7 @@ export const usePoseDetection = () => {
   const [currentPose, setCurrentPose] = useState<Pose | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
     const loadModel = async () => {
@@ -34,20 +35,44 @@ export const usePoseDetection = () => {
 
   const startCamera = async () => {
     try {
+      // Stop any existing stream first
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      
+      // Reset camera ready state
+      setIsCameraReady(false);
+      
+      // Small delay to ensure previous stream is fully stopped
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480, facingMode: 'user' }
       });
+      
+      streamRef.current = stream;
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.onloadedmetadata = () => {
           setIsCameraReady(true);
         };
-        videoRef.current.play();
+        await videoRef.current.play();
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
+      setIsCameraReady(false);
     }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setIsCameraReady(false);
+    setCurrentPose(null);
   };
 
   const detectPose = async () => {
@@ -171,6 +196,7 @@ export const usePoseDetection = () => {
     videoRef,
     canvasRef,
     startCamera,
+    stopCamera,
     detectPose,
     analyzeSquatForm
   };

@@ -25,13 +25,23 @@ export const CameraView: React.FC<CameraViewProps> = ({
     videoRef,
     canvasRef,
     startCamera,
+    stopCamera,
     detectPose,
     analyzeSquatForm
   } = usePoseDetection();
 
   useEffect(() => {
-    startCamera();
-  }, []);
+    // Add a small delay to ensure previous stream is fully stopped
+    const timer = setTimeout(() => {
+      startCamera();
+    }, 100);
+    
+    // Cleanup function to stop camera when component unmounts or coach changes
+    return () => {
+      clearTimeout(timer);
+      stopCamera();
+    };
+  }, [coach.id]); // Reinitialize when coach changes
 
   // Initialize speech synthesis
   useEffect(() => {

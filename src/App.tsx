@@ -114,36 +114,36 @@ function App() {
 
   // Add some demo photos for testing
   React.useEffect(() => {
-                 const demoPhotos: ProgressPhoto[] = [
-               {
-           id: '1',
-           imageData: '/images/squat.png', // squats - your uploaded photo
-           exercise: 'Squats',
-           timestamp: Date.now() - 86400000, // 1 day ago
-           feedback: 'Perfect squat form! Your depth is amazing! 💪'
-         },
-        {
-          id: '2',
-          imageData: '/images/glutebridge.png', // glute bridges - your uploaded photo
-          exercise: 'Glute Bridges',
-          timestamp: Date.now() - 172800000, // 2 days ago
-          feedback: 'Excellent glute activation! Booty goals! 🍑'
-        },
-        {
-          id: '3',
-          imageData: '/images/pushup.png', // push-ups - your uploaded photo
-          exercise: 'Push-ups',
-          timestamp: Date.now() - 259200000, // 3 days ago
-          feedback: 'Strong push-up form! You\'re getting stronger! 🔥'
-        },
-        {
-          id: '4',
-          imageData: '/images/plank.png', // planks - your uploaded photo
-          exercise: 'Planks',
-          timestamp: Date.now() - 345600000, // 4 days ago
-          feedback: 'Perfect plank position! Core is on fire! 🔥'
-        }
-      ];
+    const demoPhotos: ProgressPhoto[] = [
+      {
+        id: '1',
+        imageData: '/images/squat.png', // squats - your uploaded photo
+        exercise: 'Squats',
+        timestamp: Date.now() - 86400000, // 1 day ago
+        feedback: 'Perfect squat form! Your depth is amazing! 💪'
+      },
+      {
+        id: '2',
+        imageData: '/images/glutebridge.png', // glute bridges - your uploaded photo
+        exercise: 'Glute Bridges',
+        timestamp: Date.now() - 172800000, // 2 days ago
+        feedback: 'Excellent glute activation! Booty goals! 🍑'
+      },
+      {
+        id: '3',
+        imageData: '/images/pushup.png', // push-ups - your uploaded photo
+        exercise: 'Push-ups',
+        timestamp: Date.now() - 259200000, // 3 days ago
+        feedback: 'Strong push-up form! You\'re getting stronger! 🔥'
+      },
+      {
+        id: '4',
+        imageData: '/images/plank.png', // planks - your uploaded photo
+        exercise: 'Planks',
+        timestamp: Date.now() - 345600000, // 4 days ago
+        feedback: 'Perfect plank position! Core is on fire! 🔥'
+      }
+    ];
     setProgressPhotos(demoPhotos);
   }, []);
 
@@ -152,106 +152,114 @@ function App() {
       <div className="h-full bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 overflow-hidden">
         <Toaster />
         
-                 {/* Header */}
-                   <header className="p-4 text-center">
-            <motion.h1 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent mb-1"
-            >
+        {/* Header */}
+        <header className="p-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center mb-2"
+          >
+            <img 
+              src="/images/logo.png" 
+              alt="Spot Me Sis Logo" 
+              className="w-20 h-20 mb-3 rounded-xl shadow-xl border-2 border-pink-200 hover:scale-105 transition-transform duration-300"
+            />
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
               SMS – Spot Me Sis ✨
-            </motion.h1>
-          </header>
+            </h1>
+          </motion.div>
+        </header>
 
         <main className="h-full">
-        <AnimatePresence mode="wait">
-          {currentView === 'landing' && (
-            <motion.div
-              key="landing"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-                             <LandingPage
-                 onStartWorkout={handleStartWorkout}
-                 onViewProgress={handleViewProgress}
-                 onSetReminders={() => setReminderSetupOpen(true)}
-               />
-            </motion.div>
-          )}
+          <AnimatePresence mode="wait">
+            {currentView === 'landing' && (
+              <motion.div
+                key="landing"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <LandingPage
+                  onStartWorkout={handleStartWorkout}
+                  onViewProgress={handleViewProgress}
+                  onSetReminders={() => setReminderSetupOpen(true)}
+                />
+              </motion.div>
+            )}
 
-          {currentView === 'coach-selection' && (
-            <motion.div
-              key="coach-selection"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <CoachSelector
-                selectedCoach={selectedCoach}
-                onSelectCoach={handleCoachSelect}
-              />
-            </motion.div>
-          )}
+            {currentView === 'coach-selection' && (
+              <motion.div
+                key="coach-selection"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <CoachSelector
+                  selectedCoach={selectedCoach}
+                  onSelectCoach={handleCoachSelect}
+                />
+              </motion.div>
+            )}
 
-                     {currentView === 'workout' && selectedCoach && (
-             <motion.div
-               key="workout"
-               initial={{ opacity: 0, scale: 0.95 }}
-               animate={{ opacity: 1, scale: 1 }}
-               exit={{ opacity: 0, scale: 0.95 }}
-               transition={{ duration: 0.3 }}
-                              className="px-4 pb-16 h-full overflow-hidden"
-             >
-               {/* Navigation - Moved to top */}
-               <div className="flex justify-center gap-4 mb-4">
-                 <motion.button
-                   onClick={() => setCurrentView('coach-selection')}
-                   whileHover={{ scale: 1.05 }}
-                   whileTap={{ scale: 0.95 }}
-                   className="px-4 py-2 bg-pink-200 text-pink-800 border border-pink-300 rounded-full shadow-lg font-medium text-sm"
-                 >
-                   ← Back to Coaches
-                 </motion.button>
-                 <motion.button
-                   onClick={() => setCurrentView('landing')}
-                   whileHover={{ scale: 1.05 }}
-                   whileTap={{ scale: 0.95 }}
-                   className="px-4 py-2 bg-white text-gray-700 rounded-full shadow-lg font-medium text-sm"
-                 >
-                   Back to Home
-                 </motion.button>
-               </div>
+            {currentView === 'workout' && selectedCoach && (
+              <motion.div
+                key="workout"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3 }}
+                className="px-4 pb-16 h-full overflow-hidden"
+              >
+                {/* Navigation - Moved to top */}
+                <div className="flex justify-center gap-4 mb-4">
+                  <motion.button
+                    onClick={() => setCurrentView('coach-selection')}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-4 py-2 bg-pink-200 text-pink-800 border border-pink-300 rounded-full shadow-lg font-medium text-sm"
+                  >
+                    ← Back to Coaches
+                  </motion.button>
+                  <motion.button
+                    onClick={() => setCurrentView('landing')}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-4 py-2 bg-white text-gray-700 rounded-full shadow-lg font-medium text-sm"
+                  >
+                    Back to Home
+                  </motion.button>
+                </div>
 
-               <div className="space-y-4">
-                 <CameraView
-                   coach={selectedCoach}
-                   onFeedback={handleFeedback}
-                   currentExercise={currentExercise}
-                 />
-                 
-                 <WorkoutControls
-                   isActive={isWorkoutActive}
-                   isPaused={isWorkoutPaused}
-                   onStart={startWorkout}
-                   onPause={pauseWorkout}
-                   onStop={stopWorkout}
-                   onCapture={capturePhoto}
-                 />
+                <div className="space-y-4">
+                  <CameraView
+                    key={selectedCoach.id} // Force re-initialization when coach changes
+                    coach={selectedCoach}
+                    onFeedback={handleFeedback}
+                    currentExercise={currentExercise}
+                  />
+                  
+                  <WorkoutControls
+                    isActive={isWorkoutActive}
+                    isPaused={isWorkoutPaused}
+                    onStart={startWorkout}
+                    onPause={pauseWorkout}
+                    onStop={stopWorkout}
+                    onCapture={capturePhoto}
+                  />
 
-                 <ProgressTracker
-                   photos={progressPhotos}
-                   currentSession={currentSession}
-                 />
-               </div>
-             </motion.div>
-           )}
-                 </AnimatePresence>
-       </main>
+                  <ProgressTracker
+                    photos={progressPhotos}
+                    currentSession={currentSession}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </main>
 
-               {/* Bottom Action Buttons - Only show on workout view */}
+        {/* Bottom Action Buttons - Only show on workout view */}
         {currentView === 'workout' && (
           <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-3">
             <div className="flex justify-center gap-3">
@@ -276,30 +284,30 @@ function App() {
           </div>
         )}
 
-       {/* Feedback Bubble */}
-       {selectedCoach && (
-         <FeedbackBubble
-           feedback={currentFeedback}
-           coach={selectedCoach}
-         />
-       )}
+        {/* Feedback Bubble */}
+        {selectedCoach && (
+          <FeedbackBubble
+            feedback={currentFeedback}
+            coach={selectedCoach}
+          />
+        )}
 
-       {/* Progress Gallery Modal */}
-       <ProgressGallery
-         photos={progressPhotos}
-         isOpen={progressView.isOpen}
-         onClose={() => setProgressView({ ...progressView, isOpen: false })}
-         selectedPhoto={progressView.selectedPhoto}
-         onSelectPhoto={(photo) => setProgressView({ ...progressView, selectedPhoto: photo })}
-       />
+        {/* Progress Gallery Modal */}
+        <ProgressGallery
+          photos={progressPhotos}
+          isOpen={progressView.isOpen}
+          onClose={() => setProgressView({ ...progressView, isOpen: false })}
+          selectedPhoto={progressView.selectedPhoto}
+          onSelectPhoto={(photo) => setProgressView({ ...progressView, selectedPhoto: photo })}
+        />
 
-       {/* Reminder Setup Modal */}
-       <ReminderSetup
-         isOpen={reminderSetupOpen}
-         onClose={() => setReminderSetupOpen(false)}
-       />
-     </div>
-   </PhoneFrame>
+        {/* Reminder Setup Modal */}
+        <ReminderSetup
+          isOpen={reminderSetupOpen}
+          onClose={() => setReminderSetupOpen(false)}
+        />
+      </div>
+    </PhoneFrame>
   );
 }
 
