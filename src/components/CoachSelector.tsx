@@ -13,8 +13,8 @@ export const CoachSelector: React.FC<CoachSelectorProps> = ({
   onSelectCoach
 }) => {
   return (
-    <div className="h-full flex flex-col p-3">
-      <div className="text-center mb-3">
+    <div className="h-full flex flex-col p-3 pt-8">
+      <div className="text-center mb-6">
         <h2 className="text-xl font-bold text-gray-800 mb-1">
           Choose Your Vibe ✨
         </h2>
@@ -23,7 +23,7 @@ export const CoachSelector: React.FC<CoachSelectorProps> = ({
         </p>
       </div>
 
-      <div className="flex-1 grid gap-2">
+      <div className="flex-1 grid gap-4">
         {coaches.map((coach) => (
           <motion.button
             key={coach.id}

@@ -152,23 +152,25 @@ function App() {
       <div className="h-full bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 overflow-hidden">
         <Toaster />
         
-        {/* Header */}
-        <header className="p-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center mb-2"
-          >
-            <img 
-              src="/images/logo.png" 
-              alt="Spot Me Sis Logo" 
-              className="w-20 h-20 mb-3 rounded-xl shadow-xl border-2 border-pink-200 hover:scale-105 transition-transform duration-300"
-            />
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-              SMS – Spot Me Sis ✨
-            </h1>
-          </motion.div>
-        </header>
+                                                                       {/* Header - Only show on landing page */}
+           {currentView === 'landing' && (
+             <header className="pt-12 pb-6 px-6 text-center">
+               <motion.div
+                 initial={{ opacity: 0, y: -20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 className="flex flex-col items-center mb-4"
+               >
+                 <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent mb-4">
+                   SMS – Spot Me Sis ✨
+                 </h1>
+                 <img 
+                   src="/images/logo.png" 
+                   alt="Spot Me Sis Logo" 
+                   className="w-24 h-24 rounded-xl shadow-xl border-2 border-pink-200 hover:scale-105 transition-transform duration-300"
+                 />
+               </motion.div>
+             </header>
+           )}
 
         <main className="h-full">
           <AnimatePresence mode="wait">

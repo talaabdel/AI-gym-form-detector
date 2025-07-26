@@ -70,8 +70,8 @@ export const ReminderSetup: React.FC<ReminderSetupProps> = ({
     return (
     <div className="h-full bg-white">
       {/* Content */}
-      <div className="p-3 h-full">
-        <div className="mb-2">
+      <div className="p-3 h-full pt-8">
+        <div className="mb-4">
           <h3 className="text-sm font-medium text-gray-600">Never miss a workout with these hype messages!</h3>
         </div>
 
