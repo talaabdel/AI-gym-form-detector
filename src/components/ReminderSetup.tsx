@@ -196,34 +196,34 @@ export const ReminderSetup: React.FC<ReminderSetupProps> = ({
              )}
         </div>
 
-        {/* SMS Demo Notification */}
-        <AnimatePresence>
-          {showSMSDemo && (
-            <motion.div
-              initial={{ opacity: 0, y: 50, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 50, scale: 0.9 }}
-              className="fixed bottom-4 right-4 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 max-w-sm z-[60]"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <img 
-                  src="/images/logo.png" 
-                  alt="Spot Me Sis Logo" 
-                  className="w-8 h-8 rounded-lg shadow-sm"
-                />
-                <div>
-                  <div className="font-medium text-gray-800">Spot Me Sis</div>
-                  <div className="text-xs text-gray-500">Just now</div>
-                </div>
-              </div>
-              <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-3 rounded-lg">
-                <p className="text-gray-700 text-sm font-medium">
-                  {selectedMessage}
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                 {/* SMS Demo Notification */}
+         <AnimatePresence>
+           {showSMSDemo && (
+             <motion.div
+               initial={{ opacity: 0, y: -50, scale: 0.9 }}
+               animate={{ opacity: 1, y: 0, scale: 1 }}
+               exit={{ opacity: 0, y: -50, scale: 0.9 }}
+               className="absolute top-2 left-2 right-2 bg-white rounded-xl shadow-2xl border border-gray-200 p-3 z-[60]"
+             >
+               <div className="flex items-center gap-2 mb-2">
+                 <img 
+                   src="/images/logo.png" 
+                   alt="Spot Me Sis Logo" 
+                   className="w-6 h-6 rounded-lg shadow-sm"
+                 />
+                 <div>
+                   <div className="font-medium text-gray-800 text-sm">Spot Me Sis</div>
+                   <div className="text-xs text-gray-500">Just now</div>
+                 </div>
+               </div>
+               <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-2 rounded-lg">
+                 <p className="text-gray-700 text-xs font-medium">
+                   {selectedMessage}
+                 </p>
+               </div>
+             </motion.div>
+           )}
+         </AnimatePresence>
       </div>
     </div>
   );
