@@ -234,9 +234,11 @@ export const ReminderSetup: React.FC<ReminderSetupProps> = ({
               className="fixed bottom-4 right-4 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 max-w-sm z-[60]"
             >
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">SMS</span>
-                </div>
+                <img 
+                  src="/images/logo.png" 
+                  alt="Spot Me Sis Logo" 
+                  className="w-8 h-8 rounded-lg shadow-sm"
+                />
                 <div>
                   <div className="font-medium text-gray-800">Spot Me Sis</div>
                   <div className="text-xs text-gray-500">Just now</div>
