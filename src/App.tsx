@@ -12,7 +12,7 @@ import { PhoneFrame } from './components/PhoneFrame';
 import { LandingPage } from './components/LandingPage';
 import { CoachPersonality, FormFeedback, WorkoutSession, ProgressPhoto, ProgressView } from './types';
 
-type AppView = 'landing' | 'coach-selection' | 'workout' | 'progress';
+type AppView = 'landing' | 'coach-selection' | 'workout' | 'progress' | 'progress-gallery' | 'reminder-setup';
 
 function App() {
   const [currentView, setCurrentView] = useState<AppView>('landing');
@@ -31,7 +31,7 @@ function App() {
   };
 
   const handleViewProgress = () => {
-    setProgressView({ ...progressView, isOpen: true });
+    setCurrentView('progress-gallery');
   };
 
   const handleCoachSelect = (coach: CoachPersonality) => {
@@ -183,7 +183,7 @@ function App() {
                 <LandingPage
                   onStartWorkout={handleStartWorkout}
                   onViewProgress={handleViewProgress}
-                  onSetReminders={() => setReminderSetupOpen(true)}
+                  onSetReminders={() => setCurrentView('reminder-setup')}
                 />
               </motion.div>
             )}
@@ -256,33 +256,71 @@ function App() {
                 </div>
               </motion.div>
             )}
+
+                         {currentView === 'progress-gallery' && (
+               <motion.div
+                 key="progress-gallery"
+                 initial={{ opacity: 0, x: 300 }}
+                 animate={{ opacity: 1, x: 0 }}
+                 exit={{ opacity: 0, x: -300 }}
+                 transition={{ duration: 0.3 }}
+                 className="h-full overflow-hidden"
+               >
+                 <div className="flex items-center justify-between p-3 border-b border-gray-100 bg-white">
+                   <motion.button
+                     onClick={() => setCurrentView('landing')}
+                     whileHover={{ scale: 1.05 }}
+                     whileTap={{ scale: 0.95 }}
+                     className="px-3 py-1.5 bg-pink-200 text-pink-800 border border-pink-300 rounded-full shadow-sm font-medium text-xs"
+                   >
+                     ← Back
+                   </motion.button>
+                   <h2 className="text-lg font-bold text-gray-800">Progress Gallery 📊</h2>
+                   <div className="w-12"></div>
+                 </div>
+                 <div className="h-full overflow-y-auto">
+                   <ProgressGallery
+                     photos={progressPhotos}
+                     isOpen={true}
+                     onClose={() => setCurrentView('landing')}
+                     selectedPhoto={progressView.selectedPhoto}
+                     onSelectPhoto={(photo) => setProgressView({ ...progressView, selectedPhoto: photo })}
+                   />
+                 </div>
+               </motion.div>
+             )}
+
+                         {currentView === 'reminder-setup' && (
+               <motion.div
+                 key="reminder-setup"
+                 initial={{ opacity: 0, x: 300 }}
+                 animate={{ opacity: 1, x: 0 }}
+                 exit={{ opacity: 0, x: -300 }}
+                 transition={{ duration: 0.3 }}
+                 className="h-full overflow-hidden"
+               >
+                 <div className="flex items-center justify-between p-3 border-b border-gray-100 bg-white">
+                   <motion.button
+                     onClick={() => setCurrentView('landing')}
+                     whileHover={{ scale: 1.05 }}
+                     whileTap={{ scale: 0.95 }}
+                     className="px-3 py-1.5 bg-pink-200 text-pink-800 border border-pink-300 rounded-full shadow-sm font-medium text-xs"
+                   >
+                     ← Back
+                   </motion.button>
+                   <h2 className="text-lg font-bold text-gray-800">Daily Reminders ⏰</h2>
+                   <div className="w-12"></div>
+                 </div>
+                 <div className="h-full overflow-y-auto">
+                   <ReminderSetup
+                     isOpen={true}
+                     onClose={() => setCurrentView('landing')}
+                   />
+                 </div>
+               </motion.div>
+             )}
           </AnimatePresence>
         </main>
-
-        {/* Bottom Action Buttons - Only show on workout view */}
-        {currentView === 'workout' && (
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-3">
-            <div className="flex justify-center gap-3">
-              <motion.button
-                onClick={() => setProgressView({ ...progressView, isOpen: true })}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full shadow-lg font-medium flex items-center gap-1 text-sm"
-              >
-                📊 Progress
-              </motion.button>
-              
-              <motion.button
-                onClick={() => setReminderSetupOpen(true)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full shadow-lg font-medium flex items-center gap-1 text-sm"
-              >
-                ⏰ Reminders
-              </motion.button>
-            </div>
-          </div>
-        )}
 
         {/* Feedback Bubble */}
         {selectedCoach && (
@@ -291,21 +329,6 @@ function App() {
             coach={selectedCoach}
           />
         )}
-
-        {/* Progress Gallery Modal */}
-        <ProgressGallery
-          photos={progressPhotos}
-          isOpen={progressView.isOpen}
-          onClose={() => setProgressView({ ...progressView, isOpen: false })}
-          selectedPhoto={progressView.selectedPhoto}
-          onSelectPhoto={(photo) => setProgressView({ ...progressView, selectedPhoto: photo })}
-        />
-
-        {/* Reminder Setup Modal */}
-        <ReminderSetup
-          isOpen={reminderSetupOpen}
-          onClose={() => setReminderSetupOpen(false)}
-        />
       </div>
     </PhoneFrame>
   );
