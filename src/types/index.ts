@@ -41,3 +41,15 @@ export interface WorkoutSession {
   totalReps: number;
   photos: ProgressPhoto[];
 }
+
+export interface Reminder {
+  id: string;
+  time: string;
+  message: string;
+  isActive: boolean;
+}
+
+export interface ProgressView {
+  isOpen: boolean;
+  selectedPhoto: ProgressPhoto | null;
+}

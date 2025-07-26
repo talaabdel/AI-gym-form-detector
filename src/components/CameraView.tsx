@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { usePoseDetection } from '../hooks/usePoseDetection';
 import { CoachPersonality, FormFeedback } from '../types';
@@ -15,6 +15,9 @@ export const CameraView: React.FC<CameraViewProps> = ({
   onFeedback,
   currentExercise
 }) => {
+  const lastFeedbackTime = useRef<number>(0);
+  const speechSynthesis = useRef<SpeechSynthesis | null>(null);
+  
   const {
     isLoading,
     isCameraReady,
@@ -30,20 +33,76 @@ export const CameraView: React.FC<CameraViewProps> = ({
     startCamera();
   }, []);
 
+  // Initialize speech synthesis
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      speechSynthesis.current = window.speechSynthesis;
+    }
+  }, []);
+
+  // Function to speak feedback with girly sassy voice
+  const speakFeedback = (message: string) => {
+    if (speechSynthesis.current) {
+      // Remove emojis from the message before speaking
+      const cleanMessage = message.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '');
+      
+      const utterance = new SpeechSynthesisUtterance(cleanMessage);
+      utterance.rate = 1.2; // Slightly faster for sassy effect
+      utterance.pitch = 1.3; // Higher pitch for girly voice
+      utterance.volume = 0.8;
+      
+      // Try to find a female voice
+      const voices = speechSynthesis.current.getVoices();
+      let femaleVoice = voices.find(voice =>
+        (voice.name.toLowerCase().includes('female') ||
+         voice.name.toLowerCase().includes('woman') ||
+         voice.name.toLowerCase().includes('samantha') ||
+         voice.name.toLowerCase().includes('victoria') ||
+         (voice.gender && voice.gender.toLowerCase() === 'female'))
+      );
+      if (!femaleVoice) {
+        // fallback: pick the first voice marked as female
+        femaleVoice = voices.find(voice => voice.gender && voice.gender.toLowerCase() === 'female');
+      }
+      if (!femaleVoice) {
+        // fallback: pick the first voice with 'female' in the name
+        femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female'));
+      }
+      if (!femaleVoice) {
+        // fallback: pick the first available voice
+        femaleVoice = voices[0];
+      }
+      if (femaleVoice) {
+        utterance.voice = femaleVoice;
+      }
+      speechSynthesis.current.speak(utterance);
+    }
+  };
+
   useEffect(() => {
     if (!isLoading && isCameraReady && currentPose) {
-      const feedback = analyzeSquatForm(currentPose);
-      if (feedback) {
-        // Add personality to feedback
-        const messages = feedbackMessages[coach.id as keyof typeof feedbackMessages];
-        const personalizedMessage = messages[feedback.type][
-          Math.floor(Math.random() * messages[feedback.type].length)
-        ];
-        
-        onFeedback({
-          ...feedback,
-          message: personalizedMessage
-        });
+      const now = Date.now();
+      const timeSinceLastFeedback = now - lastFeedbackTime.current;
+      
+      // Only give feedback every 10 seconds
+      if (timeSinceLastFeedback >= 10000) {
+        const feedback = analyzeSquatForm(currentPose);
+        if (feedback) {
+          // Add personality to feedback
+          const messages = feedbackMessages[coach.id as keyof typeof feedbackMessages];
+          const personalizedMessage = messages[feedback.type][
+            Math.floor(Math.random() * messages[feedback.type].length)
+          ];
+          
+          const feedbackWithMessage = {
+            ...feedback,
+            message: personalizedMessage
+          };
+          
+          onFeedback(feedbackWithMessage);
+          speakFeedback(personalizedMessage);
+          lastFeedbackTime.current = now;
+        }
       }
     }
   }, [currentPose, coach.id, onFeedback, isLoading, isCameraReady]);

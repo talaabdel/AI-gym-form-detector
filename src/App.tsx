@@ -6,12 +6,16 @@ import { CameraView } from './components/CameraView';
 import { FeedbackBubble } from './components/FeedbackBubble';
 import { ProgressTracker } from './components/ProgressTracker';
 import { WorkoutControls } from './components/WorkoutControls';
-import { CoachPersonality, FormFeedback, WorkoutSession, ProgressPhoto } from './types';
+import { ProgressGallery } from './components/ProgressGallery';
+import { ReminderSetup } from './components/ReminderSetup';
+import { PhoneFrame } from './components/PhoneFrame';
+import { LandingPage } from './components/LandingPage';
+import { CoachPersonality, FormFeedback, WorkoutSession, ProgressPhoto, ProgressView } from './types';
 
-type AppView = 'coach-selection' | 'workout' | 'progress';
+type AppView = 'landing' | 'coach-selection' | 'workout' | 'progress';
 
 function App() {
-  const [currentView, setCurrentView] = useState<AppView>('coach-selection');
+  const [currentView, setCurrentView] = useState<AppView>('landing');
   const [selectedCoach, setSelectedCoach] = useState<CoachPersonality | null>(null);
   const [currentFeedback, setCurrentFeedback] = useState<FormFeedback | null>(null);
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
@@ -19,6 +23,16 @@ function App() {
   const [currentSession, setCurrentSession] = useState<WorkoutSession | null>(null);
   const [progressPhotos, setProgressPhotos] = useState<ProgressPhoto[]>([]);
   const [currentExercise] = useState('squat');
+  const [progressView, setProgressView] = useState<ProgressView>({ isOpen: false, selectedPhoto: null });
+  const [reminderSetupOpen, setReminderSetupOpen] = useState(false);
+
+  const handleStartWorkout = () => {
+    setCurrentView('coach-selection');
+  };
+
+  const handleViewProgress = () => {
+    setProgressView({ ...progressView, isOpen: true });
+  };
 
   const handleCoachSelect = (coach: CoachPersonality) => {
     setSelectedCoach(coach);
@@ -98,26 +112,75 @@ function App() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-      <Toaster />
-      
-      {/* Header */}
-      <header className="p-6 text-center">
-        <motion.h1 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent mb-2"
-        >
-          SMS – Spot Me Sis ✨
-        </motion.h1>
-        <p className="text-gray-600 font-medium">
-          Your AI bestie for perfect form & endless hype 💪
-        </p>
-      </header>
+  // Add some demo photos for testing
+  React.useEffect(() => {
+                 const demoPhotos: ProgressPhoto[] = [
+               {
+           id: '1',
+           imageData: '/images/squat.png', // squats - your uploaded photo
+           exercise: 'Squats',
+           timestamp: Date.now() - 86400000, // 1 day ago
+           feedback: 'Perfect squat form! Your depth is amazing! 💪'
+         },
+        {
+          id: '2',
+          imageData: '/images/glutebridge.png', // glute bridges - your uploaded photo
+          exercise: 'Glute Bridges',
+          timestamp: Date.now() - 172800000, // 2 days ago
+          feedback: 'Excellent glute activation! Booty goals! 🍑'
+        },
+        {
+          id: '3',
+          imageData: '/images/pushup.png', // push-ups - your uploaded photo
+          exercise: 'Push-ups',
+          timestamp: Date.now() - 259200000, // 3 days ago
+          feedback: 'Strong push-up form! You\'re getting stronger! 🔥'
+        },
+        {
+          id: '4',
+          imageData: '/images/plank.png', // planks - your uploaded photo
+          exercise: 'Planks',
+          timestamp: Date.now() - 345600000, // 4 days ago
+          feedback: 'Perfect plank position! Core is on fire! 🔥'
+        }
+      ];
+    setProgressPhotos(demoPhotos);
+  }, []);
 
-      <main className="container mx-auto px-4 pb-20">
+  return (
+    <PhoneFrame>
+      <div className="h-full bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 overflow-hidden">
+        <Toaster />
+        
+                 {/* Header */}
+                   <header className="p-4 text-center">
+            <motion.h1 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent mb-1"
+            >
+              SMS – Spot Me Sis ✨
+            </motion.h1>
+          </header>
+
+        <main className="h-full">
         <AnimatePresence mode="wait">
+          {currentView === 'landing' && (
+            <motion.div
+              key="landing"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+                             <LandingPage
+                 onStartWorkout={handleStartWorkout}
+                 onViewProgress={handleViewProgress}
+                 onSetReminders={() => setReminderSetupOpen(true)}
+               />
+            </motion.div>
+          )}
+
           {currentView === 'coach-selection' && (
             <motion.div
               key="coach-selection"
@@ -133,63 +196,110 @@ function App() {
             </motion.div>
           )}
 
-          {currentView === 'workout' && selectedCoach && (
-            <motion.div
-              key="workout"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-6"
-            >
-              <div className="grid lg:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <CameraView
-                    coach={selectedCoach}
-                    onFeedback={handleFeedback}
-                    currentExercise={currentExercise}
-                  />
-                  
-                  <WorkoutControls
-                    isActive={isWorkoutActive}
-                    isPaused={isWorkoutPaused}
-                    onStart={startWorkout}
-                    onPause={pauseWorkout}
-                    onStop={stopWorkout}
-                    onCapture={capturePhoto}
-                  />
-                </div>
+                     {currentView === 'workout' && selectedCoach && (
+             <motion.div
+               key="workout"
+               initial={{ opacity: 0, scale: 0.95 }}
+               animate={{ opacity: 1, scale: 1 }}
+               exit={{ opacity: 0, scale: 0.95 }}
+               transition={{ duration: 0.3 }}
+                              className="px-4 pb-16 h-full overflow-hidden"
+             >
+               {/* Navigation - Moved to top */}
+               <div className="flex justify-center gap-4 mb-4">
+                 <motion.button
+                   onClick={() => setCurrentView('coach-selection')}
+                   whileHover={{ scale: 1.05 }}
+                   whileTap={{ scale: 0.95 }}
+                   className="px-4 py-2 bg-pink-200 text-pink-800 border border-pink-300 rounded-full shadow-lg font-medium text-sm"
+                 >
+                   ← Back to Coaches
+                 </motion.button>
+                 <motion.button
+                   onClick={() => setCurrentView('landing')}
+                   whileHover={{ scale: 1.05 }}
+                   whileTap={{ scale: 0.95 }}
+                   className="px-4 py-2 bg-white text-gray-700 rounded-full shadow-lg font-medium text-sm"
+                 >
+                   Back to Home
+                 </motion.button>
+               </div>
 
-                <ProgressTracker
-                  photos={progressPhotos}
-                  currentSession={currentSession}
-                />
-              </div>
+               <div className="space-y-4">
+                 <CameraView
+                   coach={selectedCoach}
+                   onFeedback={handleFeedback}
+                   currentExercise={currentExercise}
+                 />
+                 
+                 <WorkoutControls
+                   isActive={isWorkoutActive}
+                   isPaused={isWorkoutPaused}
+                   onStart={startWorkout}
+                   onPause={pauseWorkout}
+                   onStop={stopWorkout}
+                   onCapture={capturePhoto}
+                 />
 
-              {/* Navigation */}
-              <div className="flex justify-center gap-4">
-                <motion.button
-                  onClick={() => setCurrentView('coach-selection')}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-3 bg-white text-gray-700 rounded-full shadow-lg font-medium"
-                >
-                  Change Coach
-                </motion.button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
+                 <ProgressTracker
+                   photos={progressPhotos}
+                   currentSession={currentSession}
+                 />
+               </div>
+             </motion.div>
+           )}
+                 </AnimatePresence>
+       </main>
 
-      {/* Feedback Bubble */}
-      {selectedCoach && (
-        <FeedbackBubble
-          feedback={currentFeedback}
-          coach={selectedCoach}
-        />
-      )}
-    </div>
+               {/* Bottom Action Buttons - Only show on workout view */}
+        {currentView === 'workout' && (
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-3">
+            <div className="flex justify-center gap-3">
+              <motion.button
+                onClick={() => setProgressView({ ...progressView, isOpen: true })}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full shadow-lg font-medium flex items-center gap-1 text-sm"
+              >
+                📊 Progress
+              </motion.button>
+              
+              <motion.button
+                onClick={() => setReminderSetupOpen(true)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full shadow-lg font-medium flex items-center gap-1 text-sm"
+              >
+                ⏰ Reminders
+              </motion.button>
+            </div>
+          </div>
+        )}
+
+       {/* Feedback Bubble */}
+       {selectedCoach && (
+         <FeedbackBubble
+           feedback={currentFeedback}
+           coach={selectedCoach}
+         />
+       )}
+
+       {/* Progress Gallery Modal */}
+       <ProgressGallery
+         photos={progressPhotos}
+         isOpen={progressView.isOpen}
+         onClose={() => setProgressView({ ...progressView, isOpen: false })}
+         selectedPhoto={progressView.selectedPhoto}
+         onSelectPhoto={(photo) => setProgressView({ ...progressView, selectedPhoto: photo })}
+       />
+
+       {/* Reminder Setup Modal */}
+       <ReminderSetup
+         isOpen={reminderSetupOpen}
+         onClose={() => setReminderSetupOpen(false)}
+       />
+     </div>
+   </PhoneFrame>
   );
 }
 
