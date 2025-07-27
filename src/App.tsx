@@ -26,6 +26,8 @@ function App() {
   const [currentExercise] = useState('squat');
   const [progressView, setProgressView] = useState<ProgressView>({ isOpen: false, selectedPhoto: null });
   const [reminderSetupOpen, setReminderSetupOpen] = useState(false);
+  const [formScore, setFormScore] = useState(0);
+  const [isInSquatPosition, setIsInSquatPosition] = useState(false);
 
   const handleStartWorkout = () => {
     setCurrentView('coach-selection');
@@ -60,6 +62,11 @@ function App() {
     // Clear feedback after delay
     setTimeout(() => setCurrentFeedback(null), 4000);
   }, [currentSession]);
+
+  const handleFormUpdate = useCallback((score: number, inSquatPosition: boolean) => {
+    setFormScore(score);
+    setIsInSquatPosition(inSquatPosition);
+  }, []);
 
   const startWorkout = () => {
     setIsWorkoutActive(true);
@@ -245,6 +252,7 @@ function App() {
                     key={selectedCoach.id} // Force re-initialization when coach changes
                     coach={selectedCoach}
                     onFeedback={handleFeedback}
+                    onFormUpdate={handleFormUpdate}
                     currentExercise={currentExercise}
                   />
                   
@@ -260,6 +268,8 @@ function App() {
                   <ProgressTracker
                     photos={progressPhotos}
                     currentSession={currentSession}
+                    realTimeFormScore={formScore}
+                    isInSquatPosition={isInSquatPosition}
                   />
                 </div>
               </motion.div>

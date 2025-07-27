@@ -1,198 +1,298 @@
-import { useEffect, useRef, useState } from 'react';
-import * as tf from '@tensorflow/tfjs';
-import * as posenet from '@tensorflow-models/posenet';
-import { Pose, FormFeedback } from '../types';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { Pose, Results, NormalizedLandmark } from '@mediapipe/pose';
+import { Camera } from '@mediapipe/camera_utils';
+import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
+import { FormFeedback } from '../types';
 
 export const usePoseDetection = () => {
-  const [model, setModel] = useState<posenet.PoseNet | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCameraReady, setIsCameraReady] = useState(false);
-  const [currentPose, setCurrentPose] = useState<Pose | null>(null);
+  const [currentPose, setCurrentPose] = useState<Results | null>(null);
+  const [formScore, setFormScore] = useState(0);
+  const [isInSquatPosition, setIsInSquatPosition] = useState(false);
+  
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const poseRef = useRef<Pose | null>(null);
+  const cameraRef = useRef<Camera | null>(null);
 
+  // Initialize MediaPipe Pose
   useEffect(() => {
-    const loadModel = async () => {
+    const initializePose = async () => {
       try {
-        await tf.ready();
-        const net = await posenet.load({
-          architecture: 'MobileNetV1',
-          outputStride: 16,
-          inputResolution: { width: 640, height: 480 },
-          multiplier: 0.75
+        const pose = new Pose({
+          locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+          }
         });
-        setModel(net);
+
+        pose.setOptions({
+          modelComplexity: 1,
+          smoothLandmarks: true,
+          enableSegmentation: false,
+          smoothSegmentation: false,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5
+        });
+
+        pose.onResults(onPoseResults);
+        poseRef.current = pose;
         setIsLoading(false);
       } catch (error) {
-        console.error('Error loading PoseNet model:', error);
+        console.error('Error initializing MediaPipe Pose:', error);
         setIsLoading(false);
       }
     };
 
-    loadModel();
+    initializePose();
+  }, []);
+
+  const onPoseResults = useCallback((results: Results) => {
+    setCurrentPose(results);
+    
+    if (results.poseLandmarks) {
+      const feedback = analyzeSquatForm(results.poseLandmarks);
+      if (feedback) {
+        // This will be handled by the parent component
+        console.log('Form feedback:', feedback);
+      }
+    }
+
+    // Draw video frame and pose on canvas
+    if (canvasRef.current && videoRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw the video frame first
+        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        
+        // Then draw the pose landmarks on top
+        if (results.poseLandmarks) {
+          drawConnectors(ctx, results.poseLandmarks, Pose.POSE_CONNECTIONS, {
+            color: '#FF6B9D',
+            lineWidth: 2
+          });
+          drawLandmarks(ctx, results.poseLandmarks, {
+            color: '#FF6B9D',
+            lineWidth: 1,
+            radius: 3
+          });
+        }
+      }
+    }
   }, []);
 
   const startCamera = async () => {
     try {
-      // Stop any existing stream first
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
-      }
-      
-      // Reset camera ready state
+      if (!poseRef.current || !videoRef.current) return;
+
       setIsCameraReady(false);
       
-      // Small delay to ensure previous stream is fully stopped
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480, facingMode: 'user' }
-      });
-      
-      streamRef.current = stream;
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          setIsCameraReady(true);
-        };
-        await videoRef.current.play();
+      // Try MediaPipe Camera first
+      try {
+        const camera = new Camera(videoRef.current, {
+          onFrame: async () => {
+            if (poseRef.current && videoRef.current) {
+              await poseRef.current.send({ image: videoRef.current });
+            }
+          },
+          width: 640,
+          height: 480
+        });
+
+        await camera.start();
+        cameraRef.current = camera;
+        setIsCameraReady(true);
+      } catch (mediaPipeError) {
+        console.log('MediaPipe Camera failed, trying fallback...', mediaPipeError);
+        
+        // Fallback to standard getUserMedia
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            width: 640, 
+            height: 480, 
+            facingMode: 'user' 
+          }
+        });
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            setIsCameraReady(true);
+          };
+          await videoRef.current.play();
+          
+          // Set up pose detection loop for fallback
+          const detectPoseLoop = async () => {
+            if (poseRef.current && videoRef.current && isCameraReady) {
+              try {
+                await poseRef.current.send({ image: videoRef.current });
+              } catch (error) {
+                console.error('Pose detection error:', error);
+              }
+            }
+            requestAnimationFrame(detectPoseLoop);
+          };
+          detectPoseLoop();
+        }
       }
     } catch (error) {
-      console.error('Error accessing camera:', error);
+      console.error('Error starting camera:', error);
       setIsCameraReady(false);
     }
   };
 
   const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
+    if (cameraRef.current) {
+      cameraRef.current.stop();
+      cameraRef.current = null;
     }
+    
+    // Also stop any fallback stream
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    
     setIsCameraReady(false);
     setCurrentPose(null);
+    setFormScore(0);
+    setIsInSquatPosition(false);
   };
 
-  const detectPose = async () => {
-    if (!model || !videoRef.current || !canvasRef.current || !isCameraReady) return;
+  const analyzeSquatForm = (landmarks: NormalizedLandmark[]): FormFeedback | null => {
+    if (!landmarks || landmarks.length === 0) return null;
 
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-
-    if (!ctx) return;
-
-    const pose = await model.estimateSinglePose(video, {
-      flipHorizontal: true
-    });
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw video frame
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-    // Draw pose keypoints
-    drawKeypoints(ctx, pose.keypoints);
-    drawSkeleton(ctx, pose.keypoints);
-
-    // Convert to our Pose type
-    const formattedPose: Pose = {
-      keypoints: pose.keypoints.map(kp => ({
-        part: kp.part,
-        position: kp.position,
-        score: kp.score
-      })),
-      score: pose.score
-    };
-
-    setCurrentPose(formattedPose);
-  };
-
-  const drawKeypoints = (ctx: CanvasRenderingContext2D, keypoints: any[]) => {
-    keypoints.forEach(keypoint => {
-      if (keypoint.score > 0.3) {
-        ctx.beginPath();
-        ctx.arc(keypoint.position.x, keypoint.position.y, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = '#FF6B9D';
-        ctx.fill();
-      }
-    });
-  };
-
-  const drawSkeleton = (ctx: CanvasRenderingContext2D, keypoints: any[]) => {
-    const adjacentKeyPoints = posenet.getAdjacentKeyPoints(keypoints, 0.3);
-    
-    adjacentKeyPoints.forEach(keypoints => {
-      ctx.beginPath();
-      ctx.moveTo(keypoints[0].position.x, keypoints[0].position.y);
-      ctx.lineTo(keypoints[1].position.x, keypoints[1].position.y);
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#FF6B9D';
-      ctx.stroke();
-    });
-  };
-
-  const analyzeSquatForm = (pose: Pose): FormFeedback | null => {
-    if (!pose || pose.keypoints.length === 0) return null;
-
-    const leftHip = pose.keypoints.find(kp => kp.part === 'leftHip');
-    const rightHip = pose.keypoints.find(kp => kp.part === 'rightHip');
-    const leftKnee = pose.keypoints.find(kp => kp.part === 'leftKnee');
-    const rightKnee = pose.keypoints.find(kp => kp.part === 'rightKnee');
-    const leftAnkle = pose.keypoints.find(kp => kp.part === 'leftAnkle');
-    const rightAnkle = pose.keypoints.find(kp => kp.part === 'rightAnkle');
+    // Get key landmarks for squat analysis
+    const leftHip = landmarks[23]; // Left hip
+    const rightHip = landmarks[24]; // Right hip
+    const leftKnee = landmarks[25]; // Left knee
+    const rightKnee = landmarks[26]; // Right knee
+    const leftAnkle = landmarks[27]; // Left ankle
+    const rightAnkle = landmarks[28]; // Right ankle
+    const leftShoulder = landmarks[11]; // Left shoulder
+    const rightShoulder = landmarks[12]; // Right shoulder
 
     if (!leftHip || !rightHip || !leftKnee || !rightKnee || !leftAnkle || !rightAnkle) {
       return null;
     }
 
-    const avgHipY = (leftHip.position.y + rightHip.position.y) / 2;
-    const avgKneeY = (leftKnee.position.y + rightKnee.position.y) / 2;
-    const avgAnkleY = (leftAnkle.position.y + rightAnkle.position.y) / 2;
+    // Calculate squat depth
+    const avgHipY = (leftHip.y + rightHip.y) / 2;
+    const avgKneeY = (leftKnee.y + rightKnee.y) / 2;
+    const avgAnkleY = (leftAnkle.y + rightAnkle.y) / 2;
+    
+    // Calculate knee angle
+    const kneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
+    
+    // Calculate hip angle
+    const hipAngle = calculateAngle(leftShoulder, leftHip, leftKnee);
+    
+    // Determine if in squat position
+    const isSquatting = kneeAngle < 120 && hipAngle < 160;
+    setIsInSquatPosition(isSquatting);
+
+    // Calculate form score (0-100)
+    let score = 100;
+    let issues: string[] = [];
 
     // Check squat depth
     const squatDepth = avgKneeY - avgHipY;
-    const isDeepEnough = squatDepth > 30; // Adjust threshold as needed
+    if (squatDepth < 0.1) {
+      score -= 30;
+      issues.push('depth');
+    }
 
-    // Check knee alignment
-    const kneeAlignment = Math.abs(leftKnee.position.x - rightKnee.position.x);
-    const hipAlignment = Math.abs(leftHip.position.x - rightHip.position.x);
-    const kneeCollapse = kneeAlignment < hipAlignment * 0.8;
+    // Check knee alignment (knees should not go past toes)
+    const kneeToeAlignment = leftKnee.x - leftAnkle.x;
+    if (kneeToeAlignment > 0.05) {
+      score -= 20;
+      issues.push('knee_alignment');
+    }
 
-    if (!isDeepEnough) {
+    // Check knee angle for proper squat depth
+    if (kneeAngle > 110) {
+      score -= 25;
+      issues.push('knee_angle');
+    }
+
+    // Check hip angle
+    if (hipAngle > 150) {
+      score -= 15;
+      issues.push('hip_angle');
+    }
+
+    // Ensure score doesn't go below 0
+    score = Math.max(0, score);
+    setFormScore(score);
+
+    // Generate feedback based on issues
+    if (score >= 90) {
+      return {
+        type: 'good',
+        message: 'Perfect squat form! You\'re absolutely crushing it! 🔥',
+        exercise: 'squat',
+        timestamp: Date.now(),
+        score: score
+      };
+    } else if (score >= 70) {
       return {
         type: 'warning',
-        message: 'Go deeper! Sit that booty down like you mean it! 🍑',
+        message: 'Good form! Try going a bit deeper for maximum gains! 💪',
         exercise: 'squat',
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        score: score
       };
-    }
+    } else {
+      let message = 'Let\'s work on your form! ';
+      if (issues.includes('depth')) {
+        message += 'Go deeper! Sit that booty down! 🍑';
+      } else if (issues.includes('knee_alignment')) {
+        message += 'Keep those knees behind your toes! 🦵';
+      } else if (issues.includes('knee_angle')) {
+        message += 'Bend those knees more! 💪';
+      } else {
+        message += 'Focus on your form! You got this! ✨';
+      }
 
-    if (kneeCollapse) {
       return {
         type: 'error',
-        message: 'Keep those knees out, bestie! Protect those joints! 💪',
+        message: message,
         exercise: 'squat',
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        score: score
       };
     }
-
-    return {
-      type: 'good',
-      message: 'Perfect squat! You\'re absolutely crushing it! 🔥',
-      exercise: 'squat',
-      timestamp: Date.now()
-    };
   };
 
+  const calculateAngle = (point1: NormalizedLandmark, point2: NormalizedLandmark, point3: NormalizedLandmark): number => {
+    const angle = Math.atan2(point3.y - point2.y, point3.x - point2.x) -
+                  Math.atan2(point1.y - point2.y, point1.x - point2.x);
+    let degrees = angle * 180 / Math.PI;
+    if (degrees < 0) degrees += 360;
+    return degrees;
+  };
+
+  const detectPose = useCallback(async () => {
+    if (!poseRef.current || !videoRef.current || !isCameraReady) return;
+    
+    try {
+      await poseRef.current.send({ image: videoRef.current });
+    } catch (error) {
+      console.error('Error detecting pose:', error);
+    }
+  }, [isCameraReady]);
+
   return {
-    model,
     isLoading,
     isCameraReady,
     currentPose,
+    formScore,
+    isInSquatPosition,
     videoRef,
     canvasRef,
     startCamera,

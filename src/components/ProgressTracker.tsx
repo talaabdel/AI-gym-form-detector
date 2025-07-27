@@ -6,16 +6,23 @@ import { CameraIcon, TrophyIcon, FireIcon } from '@heroicons/react/24/outline';
 interface ProgressTrackerProps {
   photos: ProgressPhoto[];
   currentSession: WorkoutSession | null;
+  realTimeFormScore?: number;
+  isInSquatPosition?: boolean;
 }
 
 export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
   photos,
-  currentSession
+  currentSession,
+  realTimeFormScore = 0,
+  isInSquatPosition = false
 }) => {
   const goodFormPhotos = photos.filter(p => p.feedback.includes('Perfect') || p.feedback.includes('good'));
   const totalReps = currentSession?.totalReps || 0;
   const goodReps = currentSession?.goodReps || 0;
   const formAccuracy = totalReps > 0 ? Math.round((goodReps / totalReps) * 100) : 0;
+
+  // Use real-time form score when in squat position, otherwise use session accuracy
+  const displayFormScore = isInSquatPosition ? realTimeFormScore : formAccuracy;
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-lg">
@@ -30,15 +37,40 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
           <div className="text-2xl font-bold text-pink-600">{totalReps}</div>
           <div className="text-sm text-gray-600">Total Reps</div>
         </div>
-        <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
-          <div className="text-2xl font-bold text-green-600">{formAccuracy}%</div>
+        <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl relative">
+          <div className={`text-2xl font-bold ${
+            displayFormScore >= 90 ? 'text-green-600' : 
+            displayFormScore >= 70 ? 'text-yellow-600' : 'text-red-600'
+          }`}>
+            {displayFormScore}%
+          </div>
           <div className="text-sm text-gray-600">Form Score</div>
+          {isInSquatPosition && (
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+          )}
         </div>
         <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl">
           <div className="text-2xl font-bold text-purple-600">{goodFormPhotos.length}</div>
           <div className="text-sm text-gray-600">Perfect Shots</div>
         </div>
       </div>
+
+      {/* Real-time Form Status */}
+      {isInSquatPosition && (
+        <div className="mb-4 p-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl border border-green-200">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-green-800">
+              Live Form Analysis Active
+            </span>
+          </div>
+          <p className="text-xs text-green-700 mt-1">
+            {realTimeFormScore >= 90 ? "Perfect form! Keep it up! 🔥" :
+             realTimeFormScore >= 70 ? "Good form! Try going deeper! 💪" :
+             "Let's work on that form! You got this! ✨"}
+          </p>
+        </div>
+      )}
 
       {/* Photo Gallery */}
       {goodFormPhotos.length > 0 && (
@@ -78,9 +110,14 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
           <span className="font-medium text-gray-800">Keep it up bestie!</span>
         </div>
         <p className="text-sm text-gray-600">
-          {formAccuracy >= 80 ? "You're absolutely crushing it! Form goals! 🔥" :
-           formAccuracy >= 60 ? "Great progress! You're getting stronger every rep! 💪" :
-           "Every rep is progress! Keep pushing, queen! ✨"}
+          {isInSquatPosition 
+            ? (realTimeFormScore >= 90 ? "You're absolutely crushing it! Form goals! 🔥" :
+               realTimeFormScore >= 70 ? "Great form! You're getting stronger! 💪" :
+               "Focus on your form! You got this! ✨")
+            : (formAccuracy >= 80 ? "You're absolutely crushing it! Form goals! 🔥" :
+               formAccuracy >= 60 ? "Great progress! You're getting stronger every rep! 💪" :
+               "Every rep is progress! Keep pushing, queen! ✨")
+          }
         </p>
       </div>
     </div>

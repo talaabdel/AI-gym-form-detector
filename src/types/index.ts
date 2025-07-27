@@ -7,6 +7,21 @@ export interface CoachPersonality {
   avatar: string;
 }
 
+// MediaPipe Pose types
+export interface NormalizedLandmark {
+  x: number;
+  y: number;
+  z: number;
+  visibility?: number;
+}
+
+export interface Results {
+  poseLandmarks?: NormalizedLandmark[];
+  poseWorldLandmarks?: NormalizedLandmark[];
+  segmentationMask?: ImageData;
+}
+
+// Legacy Pose type for backward compatibility
 export interface Pose {
   keypoints: Array<{
     part: string;
@@ -21,6 +36,7 @@ export interface FormFeedback {
   message: string;
   exercise: string;
   timestamp: number;
+  score?: number; // Form accuracy score (0-100)
 }
 
 export interface ProgressPhoto {
