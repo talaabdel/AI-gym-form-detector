@@ -27,6 +27,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
   const {
     isLoading,
     isCameraReady,
+    cameraError,
     currentPose,
     formScore,
     isInExercisePosition,
@@ -263,6 +264,45 @@ export const CameraView: React.FC<CameraViewProps> = ({
     );
   }
 
+  // Show camera error if there is one
+  if (cameraError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 bg-gradient-to-br from-red-50 to-pink-100 rounded-2xl p-6">
+        <div className="text-6xl mb-4">📷</div>
+        <h3 className="text-xl font-bold text-gray-800 mb-2">Camera Access Issue</h3>
+        <p className="text-gray-600 text-center mb-4 max-w-md">
+          {cameraError.includes('HTTPS') 
+            ? "Camera access requires a secure connection (HTTPS). Please make sure you're using HTTPS in production."
+            : cameraError.includes('not supported')
+            ? "Camera access is not supported in this browser. Please try a different browser."
+            : cameraError.includes('permission')
+            ? "Camera permission was denied. Please allow camera access and refresh the page."
+            : "There was an issue accessing your camera. Please check your camera permissions and try again."
+          }
+        </p>
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 max-w-sm">
+          <h4 className="font-semibold text-gray-800 mb-2">Troubleshooting Tips:</h4>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>• Make sure you're using HTTPS (not HTTP)</li>
+            <li>• Allow camera permissions when prompted</li>
+            <li>• Check if your camera is being used by another app</li>
+            <li>• Try refreshing the page</li>
+            <li>• Use a modern browser (Chrome, Firefox, Safari, Edge)</li>
+          </ul>
+        </div>
+        <button
+          onClick={() => {
+            stopCamera();
+            setTimeout(() => startCamera(), 1000);
+          }}
+          className="mt-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+        >
+          Try Again 🔄
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       <div className="relative rounded-2xl overflow-hidden shadow-2xl">
@@ -326,7 +366,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
         </div>
 
         {/* Camera not ready message */}
-        {!isCameraReady && (
+        {!isCameraReady && !cameraError && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <div className="text-center text-white">
               <div className="text-4xl mb-2">📷</div>
