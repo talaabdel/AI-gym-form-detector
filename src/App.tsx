@@ -10,12 +10,13 @@ import { ProgressGallery } from './components/ProgressGallery';
 import { ReminderSetup } from './components/ReminderSetup';
 import { PhoneFrame } from './components/PhoneFrame';
 import { LandingPage } from './components/LandingPage';
+import { HomePageImage } from './components/HomePageImage';
 import { CoachPersonality, FormFeedback, WorkoutSession, ProgressPhoto, ProgressView } from './types';
 
-type AppView = 'landing' | 'coach-selection' | 'workout' | 'progress' | 'progress-gallery' | 'reminder-setup';
+type AppView = 'homepage-image' | 'landing' | 'coach-selection' | 'workout' | 'progress' | 'progress-gallery' | 'reminder-setup';
 
 function App() {
-  const [currentView, setCurrentView] = useState<AppView>('landing');
+  const [currentView, setCurrentView] = useState<AppView>('homepage-image');
   const [selectedCoach, setSelectedCoach] = useState<CoachPersonality | null>(null);
   const [currentFeedback, setCurrentFeedback] = useState<FormFeedback | null>(null);
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
@@ -32,6 +33,10 @@ function App() {
 
   const handleViewProgress = () => {
     setCurrentView('progress-gallery');
+  };
+
+  const handleGetStarted = () => {
+    setCurrentView('landing');
   };
 
   const handleCoachSelect = (coach: CoachPersonality) => {
@@ -147,34 +152,38 @@ function App() {
     setProgressPhotos(demoPhotos);
   }, []);
 
-  return (
-    <PhoneFrame>
-      <div className="h-full bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 overflow-hidden">
-        <Toaster />
-        
-                                                                       {/* Header - Only show on landing page */}
-           {currentView === 'landing' && (
-             <header className="pt-12 pb-6 px-6 text-center">
-               <motion.div
-                 initial={{ opacity: 0, y: -20 }}
-                 animate={{ opacity: 1, y: 0 }}
-                 className="flex flex-col items-center mb-4"
-               >
-                 <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent mb-4">
-                   SMS – Spot Me Sis ✨
-                 </h1>
-                 <img 
-                   src="/images/logo.png" 
-                   alt="Spot Me Sis Logo" 
-                   className="w-24 h-24 rounded-xl shadow-xl border-2 border-pink-200 hover:scale-105 transition-transform duration-300"
-                 />
-               </motion.div>
-             </header>
-           )}
+    return (
+    <>
+      {currentView === 'homepage-image' ? (
+        <HomePageImage onGetStarted={handleGetStarted} />
+      ) : (
+        <PhoneFrame>
+          <div className="h-full bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 overflow-hidden">
+            <Toaster />
+            
+                                                                        {/* Header - Only show on landing page */}
+             {currentView === 'landing' && (
+               <header className="pt-12 pb-6 px-6 text-center">
+                 <motion.div
+                   initial={{ opacity: 0, y: -20 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   className="flex flex-col items-center mb-4"
+                 >
+                   <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent mb-4">
+                     SMS – Spot Me Sis ✨
+                   </h1>
+                   <img 
+                     src="/images/logo.png" 
+                     alt="Spot Me Sis Logo" 
+                     className="w-24 h-24 rounded-xl shadow-xl border-2 border-pink-200 hover:scale-105 transition-transform duration-300"
+                   />
+                 </motion.div>
+               </header>
+             )}
 
-        <main className="h-full">
-          <AnimatePresence mode="wait">
-            {currentView === 'landing' && (
+          <main className="h-full">
+            <AnimatePresence mode="wait">
+              {currentView === 'landing' && (
               <motion.div
                 key="landing"
                 initial={{ opacity: 0 }}
@@ -330,10 +339,12 @@ function App() {
             feedback={currentFeedback}
             coach={selectedCoach}
           />
-        )}
-      </div>
-    </PhoneFrame>
-  );
-}
+                 )}
+       </div>
+     </PhoneFrame>
+       )}
+     </>
+   );
+ }
 
 export default App;
