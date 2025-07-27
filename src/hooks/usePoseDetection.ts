@@ -89,7 +89,6 @@ export const usePoseDetection = () => {
   const startCamera = async () => {
     try {
       if (!poseRef.current || !videoRef.current) {
-        console.error('Pose or video ref not available');
         return;
       }
 
@@ -215,13 +214,11 @@ export const usePoseDetection = () => {
           }
           
           setIsCameraReady(false);
-          throw fallbackError;
         }
       }
     } catch (error) {
       console.error('Error starting camera:', error);
       setIsCameraReady(false);
-      throw error;
     }
   };
 

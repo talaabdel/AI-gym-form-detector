@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { usePoseDetection } from '../hooks/usePoseDetection';
 import { CoachPersonality, FormFeedback } from '../types';
@@ -23,7 +23,6 @@ export const CameraView: React.FC<CameraViewProps> = ({
   const speechSynthesis = useRef<SpeechSynthesis | null>(null);
   const workoutStartTime = useRef<number>(0);
   const feedbackGiven = useRef<Set<number>>(new Set());
-  const [cameraError, setCameraError] = useState<string | null>(null);
   
   const {
     isLoading,
@@ -342,7 +341,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
         </div>
 
         {/* Camera not ready message */}
-        {!isCameraReady && !cameraError && (
+        {!isCameraReady && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <div className="text-center text-white">
               <div className="text-4xl mb-4">📷</div>
