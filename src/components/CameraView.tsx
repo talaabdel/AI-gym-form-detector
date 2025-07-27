@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { usePoseDetection } from '../hooks/usePoseDetection';
 import { CoachPersonality, FormFeedback } from '../types';
@@ -23,6 +23,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
   const speechSynthesis = useRef<SpeechSynthesis | null>(null);
   const workoutStartTime = useRef<number>(0);
   const feedbackGiven = useRef<Set<number>>(new Set());
+  const [cameraError, setCameraError] = useState<string | null>(null);
   
   const {
     isLoading,
@@ -47,8 +48,14 @@ export const CameraView: React.FC<CameraViewProps> = ({
 
   useEffect(() => {
     // Add a small delay to ensure previous stream is fully stopped
-    const timer = setTimeout(() => {
-      startCamera();
+    const timer = setTimeout(async () => {
+      try {
+        setCameraError(null);
+        await startCamera();
+      } catch (error) {
+        console.error('Camera start error:', error);
+        setCameraError(error instanceof Error ? error.message : 'Failed to start camera');
+      }
     }, 100);
     
     // Cleanup function to stop camera when component unmounts or coach changes
@@ -326,12 +333,39 @@ export const CameraView: React.FC<CameraViewProps> = ({
         </div>
 
         {/* Camera not ready message */}
-        {!isCameraReady && (
+        {!isCameraReady && !cameraError && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <div className="text-center text-white">
               <div className="text-4xl mb-2">📷</div>
               <p className="text-sm">Camera starting up...</p>
               <p className="text-xs mt-2 opacity-75">Please allow camera access</p>
+            </div>
+          </div>
+        )}
+
+        {/* Camera error message */}
+        {cameraError && (
+          <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+            <div className="text-center text-white max-w-sm mx-4">
+              <div className="text-4xl mb-4">🚫</div>
+              <h3 className="text-lg font-bold mb-2">Camera Access Issue</h3>
+              <p className="text-sm mb-4">{cameraError}</p>
+              <button 
+                onClick={async () => {
+                  try {
+                    setCameraError(null);
+                    await startCamera();
+                  } catch (error) {
+                    setCameraError(error instanceof Error ? error.message : 'Failed to start camera');
+                  }
+                }}
+                className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                Try Again
+              </button>
+              <p className="text-xs mt-3 opacity-75">
+                Make sure to allow camera permissions when prompted
+              </p>
             </div>
           </div>
         )}

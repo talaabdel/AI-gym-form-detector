@@ -89,11 +89,18 @@ export const usePoseDetection = () => {
   const startCamera = async () => {
     try {
       if (!poseRef.current || !videoRef.current) {
+        console.error('Pose or video ref not available');
         return;
       }
 
       setIsCameraReady(false);
       
+      // Check if camera permissions are available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('Camera API not supported in this browser');
+        throw new Error('Camera API not supported');
+      }
+
       // Try MediaPipe Camera first
       try {
         console.log('Attempting to start MediaPipe Camera...');
@@ -154,12 +161,29 @@ export const usePoseDetection = () => {
           }
         } catch (fallbackError) {
           console.error('Fallback camera failed:', fallbackError);
+          
+          // Check if it's a permission error
+          if (fallbackError instanceof DOMException) {
+            if (fallbackError.name === 'NotAllowedError') {
+              console.error('Camera permission denied by user');
+              throw new Error('Camera permission denied. Please allow camera access and try again.');
+            } else if (fallbackError.name === 'NotFoundError') {
+              console.error('No camera found');
+              throw new Error('No camera found on this device.');
+            } else if (fallbackError.name === 'NotReadableError') {
+              console.error('Camera is already in use');
+              throw new Error('Camera is already in use by another application.');
+            }
+          }
+          
           setIsCameraReady(false);
+          throw fallbackError;
         }
       }
     } catch (error) {
       console.error('Error starting camera:', error);
       setIsCameraReady(false);
+      throw error;
     }
   };
 
