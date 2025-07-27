@@ -70,41 +70,41 @@ export const ReminderSetup: React.FC<ReminderSetupProps> = ({
     return (
     <div className="h-full bg-white">
       {/* Content */}
-      <div className="p-3 h-full pt-8">
-        <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-600">Never miss a workout with these hype messages!</h3>
+      <div className="p-5 h-full pt-8">
+        <div className="mb-6">
+          <h3 className="text-base font-medium text-gray-600">Never miss a workout with these hype messages!</h3>
         </div>
 
         {/* Content */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Add New Reminder */}
-          <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-4 rounded-xl">
-                             <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
+          <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-5 rounded-xl">
+                             <h3 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
                  <ClockIcon className="w-4 h-4" />
                  Set New Reminder
                </h3>
                
-               <div className="space-y-3">
+               <div className="space-y-4">
                  <div>
-                   <label className="block text-xs font-medium text-gray-700 mb-1">
+                   <label className="block text-sm font-medium text-gray-700 mb-2">
                      Time
                    </label>
                    <input
                      type="time"
                      value={selectedTime}
                      onChange={(e) => setSelectedTime(e.target.value)}
-                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-sm"
+                     className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-sm"
                    />
                  </div>
 
                  <div>
-                   <label className="block text-xs font-medium text-gray-700 mb-1">
+                   <label className="block text-sm font-medium text-gray-700 mb-2">
                      Message
                    </label>
                    <select
                      value={selectedMessage}
                      onChange={(e) => setSelectedMessage(e.target.value)}
-                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-sm"
+                     className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-sm"
                    >
                      {demoMessages.map((message, index) => (
                        <option key={index} value={message}>
@@ -118,7 +118,7 @@ export const ReminderSetup: React.FC<ReminderSetupProps> = ({
                    onClick={addReminder}
                    whileHover={{ scale: 1.02 }}
                    whileTap={{ scale: 0.98 }}
-                   className="w-full bg-pink-200 text-pink-800 border border-pink-300 py-2 rounded-lg font-medium hover:bg-pink-300 transition-all text-sm"
+                   className="w-full bg-pink-200 text-pink-800 border border-pink-300 py-2.5 rounded-lg font-medium hover:bg-pink-300 transition-all text-sm"
                  >
                    Add Reminder ✨
                  </motion.button>
@@ -128,12 +128,12 @@ export const ReminderSetup: React.FC<ReminderSetupProps> = ({
                          {/* Active Reminders */}
              {reminders.length > 0 && (
                <div>
-                 <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                 <h3 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
                    <ChatBubbleLeftRightIcon className="w-4 h-4" />
                    Your Reminders
                  </h3>
                  
-                 <div className="space-y-2">
+                 <div className="space-y-3">
                    {reminders.map((reminder) => (
                      <motion.div
                        key={reminder.id}
@@ -143,7 +143,7 @@ export const ReminderSetup: React.FC<ReminderSetupProps> = ({
                      >
                        <div className="flex items-center justify-between">
                          <div className="flex items-center gap-2">
-                           <div className={`w-2 h-2 rounded-full ${reminder.isActive ? 'bg-green-500' : 'bg-gray-300'}`} />
+                           <div className={`w-2.5 h-2.5 rounded-full ${reminder.isActive ? 'bg-green-500' : 'bg-gray-300'}`} />
                            <div>
                              <div className="font-medium text-gray-800 text-sm">{reminder.time}</div>
                              <div className="text-xs text-gray-600">{reminder.message}</div>
@@ -164,7 +164,7 @@ export const ReminderSetup: React.FC<ReminderSetupProps> = ({
                              onClick={() => deleteReminder(reminder.id)}
                              className="text-red-500 hover:text-red-700 p-1"
                            >
-                             <XMarkIcon className="w-3 h-3" />
+                             <XMarkIcon className="w-3.5 h-3.5" />
                            </button>
                          </div>
                        </div>
@@ -177,7 +177,7 @@ export const ReminderSetup: React.FC<ReminderSetupProps> = ({
                    onClick={showSMSNotification}
                    whileHover={{ scale: 1.02 }}
                    whileTap={{ scale: 0.98 }}
-                   className="w-full mt-3 bg-pink-200 text-pink-800 border border-pink-300 py-2 rounded-lg font-medium hover:bg-pink-300 transition-all text-sm"
+                   className="w-full mt-4 bg-pink-200 text-pink-800 border border-pink-300 py-2.5 rounded-lg font-medium hover:bg-pink-300 transition-all text-sm"
                  >
                    Test SMS Demo 📱
                  </motion.button>
@@ -186,11 +186,11 @@ export const ReminderSetup: React.FC<ReminderSetupProps> = ({
 
                          {/* Empty State */}
              {reminders.length === 0 && (
-               <div className="text-center py-4">
-                 <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                   <BellIcon className="w-8 h-8 text-gray-400" />
+               <div className="text-center py-12">
+                 <div className="w-20 h-20 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                   <BellIcon className="w-10 h-10 text-gray-400" />
                  </div>
-                 <h3 className="text-base font-semibold text-gray-700 mb-1">No reminders set yet!</h3>
+                 <h3 className="text-lg font-semibold text-gray-700 mb-2">No reminders set yet!</h3>
                  <p className="text-gray-500 text-sm">Add your first reminder above to get started! ⏰</p>
                </div>
              )}
