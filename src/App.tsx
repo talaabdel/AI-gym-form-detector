@@ -11,6 +11,7 @@ import { ReminderSetup } from './components/ReminderSetup';
 import { PhoneFrame } from './components/PhoneFrame';
 import { LandingPage } from './components/LandingPage';
 import { HomePageImage } from './components/HomePageImage';
+import { CameraDebug } from './components/CameraDebug';
 import { CoachPersonality, FormFeedback, WorkoutSession, ProgressPhoto, ProgressView } from './types';
 
 type AppView = 'homepage-image' | 'landing' | 'coach-selection' | 'workout' | 'progress' | 'progress-gallery' | 'reminder-setup';
@@ -349,7 +350,12 @@ function App() {
             feedback={currentFeedback}
             coach={selectedCoach}
           />
-                 )}
+        )}
+
+        {/* Camera Debug Component - Only show in development */}
+        {process.env.NODE_ENV === 'development' && (
+          <CameraDebug />
+        )}
        </div>
      </PhoneFrame>
        )}

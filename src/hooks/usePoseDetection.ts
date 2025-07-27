@@ -101,6 +101,42 @@ export const usePoseDetection = () => {
         throw new Error('Camera API not supported');
       }
 
+      // Check if we're on HTTPS (required for camera access in production)
+      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+        console.warn('Camera access requires HTTPS in production');
+      }
+
+      // Try to get camera permissions first
+      try {
+        console.log('Requesting camera permissions...');
+        const testStream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: 'user'
+          },
+          audio: false
+        });
+        
+        // Stop the test stream immediately
+        testStream.getTracks().forEach(track => track.stop());
+        console.log('Camera permissions granted');
+      } catch (permissionError) {
+        console.error('Camera permission test failed:', permissionError);
+        if (permissionError instanceof DOMException) {
+          if (permissionError.name === 'NotAllowedError') {
+            throw new Error('Camera permission denied. Please allow camera access and try again.');
+          } else if (permissionError.name === 'NotFoundError') {
+            throw new Error('No camera found on this device.');
+          } else if (permissionError.name === 'NotReadableError') {
+            throw new Error('Camera is already in use by another application.');
+          } else if (permissionError.name === 'NotSupportedError') {
+            throw new Error('Camera not supported in this browser or environment.');
+          }
+        }
+        throw permissionError;
+      }
+
       // Try MediaPipe Camera first
       try {
         console.log('Attempting to start MediaPipe Camera...');
@@ -173,6 +209,8 @@ export const usePoseDetection = () => {
             } else if (fallbackError.name === 'NotReadableError') {
               console.error('Camera is already in use');
               throw new Error('Camera is already in use by another application.');
+            } else if (fallbackError.name === 'NotSupportedError') {
+              throw new Error('Camera not supported in this browser or environment.');
             }
           }
           

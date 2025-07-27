@@ -47,6 +47,27 @@ export const CameraView: React.FC<CameraViewProps> = ({
   }, [currentExercise, setExercise]);
 
   useEffect(() => {
+    // Test camera API availability first
+    const testCameraAPI = async () => {
+      console.log('Testing camera API...');
+      console.log('Protocol:', window.location.protocol);
+      console.log('Hostname:', window.location.hostname);
+      console.log('MediaDevices available:', !!navigator.mediaDevices);
+      console.log('getUserMedia available:', !!navigator.mediaDevices?.getUserMedia);
+      
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraError('Camera API not supported in this browser');
+        return;
+      }
+      
+      // Check if we're on HTTPS (required for production)
+      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+        console.warn('Camera access requires HTTPS in production');
+      }
+    };
+    
+    testCameraAPI();
+    
     // Add a small delay to ensure previous stream is fully stopped
     const timer = setTimeout(async () => {
       try {
@@ -350,6 +371,40 @@ export const CameraView: React.FC<CameraViewProps> = ({
               <div className="text-4xl mb-4">🚫</div>
               <h3 className="text-lg font-bold mb-2">Camera Access Issue</h3>
               <p className="text-sm mb-4">{cameraError}</p>
+              
+              {/* Manual camera permission request */}
+              <button 
+                onClick={async () => {
+                  try {
+                    setCameraError(null);
+                    console.log('Manually requesting camera permissions...');
+                    
+                    // First try to get permissions explicitly
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                      video: { 
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                      },
+                      audio: false
+                    });
+                    
+                    // Stop the test stream
+                    stream.getTracks().forEach(track => track.stop());
+                    console.log('Manual camera permission granted');
+                    
+                    // Now try to start the camera
+                    await startCamera();
+                  } catch (error) {
+                    console.error('Manual camera request failed:', error);
+                    setCameraError(error instanceof Error ? error.message : 'Failed to start camera');
+                  }
+                }}
+                className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors mb-2"
+              >
+                Allow Camera Access
+              </button>
+              
               <button 
                 onClick={async () => {
                   try {
@@ -359,13 +414,20 @@ export const CameraView: React.FC<CameraViewProps> = ({
                     setCameraError(error instanceof Error ? error.message : 'Failed to start camera');
                   }
                 }}
-                className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               >
                 Try Again
               </button>
-              <p className="text-xs mt-3 opacity-75">
-                Make sure to allow camera permissions when prompted
-              </p>
+              
+              <div className="mt-4 text-xs opacity-75">
+                <p>💡 Tips:</p>
+                <ul className="text-left mt-2 space-y-1">
+                  <li>• Make sure you're using HTTPS</li>
+                  <li>• Allow camera permissions when prompted</li>
+                  <li>• Try refreshing the page</li>
+                  <li>• Check if camera is used by another app</li>
+                </ul>
+              </div>
             </div>
           </div>
         )}
@@ -377,6 +439,17 @@ export const CameraView: React.FC<CameraViewProps> = ({
             <div>Pose: {currentPose ? '✅ Detected' : '❌ None'}</div>
             <div>Score: {Math.max(formScore, 90)}%</div>
             <div>Lunges: ✅ Yes</div>
+          </div>
+        )}
+
+        {/* Camera debug info - always show when there are issues */}
+        {cameraError && (
+          <div className="absolute top-4 left-4 bg-red-900/90 text-white text-xs p-2 rounded">
+            <div>Protocol: {window.location.protocol}</div>
+            <div>Host: {window.location.hostname}</div>
+            <div>MediaDevices: {navigator.mediaDevices ? '✅' : '❌'}</div>
+            <div>getUserMedia: {navigator.mediaDevices?.getUserMedia ? '✅' : '❌'}</div>
+            <div>Error: {cameraError}</div>
           </div>
         )}
       </div>
