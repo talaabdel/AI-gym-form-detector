@@ -89,71 +89,84 @@ export const usePoseDetection = () => {
   const startCamera = async () => {
     try {
       if (!poseRef.current || !videoRef.current) {
+        console.log('Pose or video ref not ready');
         return;
       }
 
       setIsCameraReady(false);
       
-      // Try MediaPipe Camera first
-      try {
-        console.log('Attempting to start MediaPipe Camera...');
-        const camera = new Camera(videoRef.current, {
-          onFrame: async () => {
-            if (poseRef.current && videoRef.current) {
-              await poseRef.current.send({ image: videoRef.current });
-            }
-          },
-          width: 640,
-          height: 480
-        });
+      // Check if getUserMedia is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('getUserMedia not supported');
+        return;
+      }
 
-        await camera.start();
-        cameraRef.current = camera;
-        setIsCameraReady(true);
-        console.log('MediaPipe Camera started successfully');
-      } catch (mediaPipeError) {
-        console.log('MediaPipe Camera failed, trying fallback...', mediaPipeError);
+      console.log('Starting camera...');
+      
+      // Try direct getUserMedia first (more reliable in production)
+      try {
+        console.log('Attempting direct camera access...');
         
-        // Fallback to standard getUserMedia
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: 'user'
+          },
+          audio: false
+        });
+        
+        streamRef.current = stream;
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            console.log('Video metadata loaded');
+            setIsCameraReady(true);
+          };
+          videoRef.current.onerror = (error) => {
+            console.error('Video error:', error);
+          };
+          await videoRef.current.play();
+          console.log('Direct camera access successful');
+          
+          // Set up pose detection loop
+          const detectPoseLoop = async () => {
+            if (poseRef.current && videoRef.current && isCameraReady && videoRef.current.readyState >= 2) {
+              try {
+                await poseRef.current.send({ image: videoRef.current });
+              } catch (error) {
+                console.error('Pose detection error:', error);
+              }
+            }
+            if (isCameraReady) {
+              requestAnimationFrame(detectPoseLoop);
+            }
+          };
+          detectPoseLoop();
+        }
+      } catch (directError) {
+        console.error('Direct camera access failed:', directError);
+        
+        // Try MediaPipe Camera as fallback
         try {
-          console.log('Attempting fallback camera access...');
-          
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { 
-              width: { ideal: 640 },
-              height: { ideal: 480 },
-              facingMode: 'user'
+          console.log('Attempting MediaPipe Camera fallback...');
+          const camera = new Camera(videoRef.current, {
+            onFrame: async () => {
+              if (poseRef.current && videoRef.current) {
+                await poseRef.current.send({ image: videoRef.current });
+              }
             },
-            audio: false
+            width: 640,
+            height: 480
           });
-          
-          streamRef.current = stream;
-          
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-            videoRef.current.onloadedmetadata = () => {
-              setIsCameraReady(true);
-              console.log('Fallback camera started successfully');
-            };
-            await videoRef.current.play();
-            
-            // Set up pose detection loop for fallback
-            const detectPoseLoop = async () => {
-              if (poseRef.current && videoRef.current && isCameraReady && videoRef.current.readyState >= 2) {
-                try {
-                  await poseRef.current.send({ image: videoRef.current });
-                } catch (error) {
-                  console.error('Pose detection error:', error);
-                }
-              }
-              if (isCameraReady) {
-                requestAnimationFrame(detectPoseLoop);
-              }
-            };
-            detectPoseLoop();
-          }
-        } catch (fallbackError) {
-          console.error('Fallback camera failed:', fallbackError);
+
+          await camera.start();
+          cameraRef.current = camera;
+          setIsCameraReady(true);
+          console.log('MediaPipe Camera fallback successful');
+        } catch (mediaPipeError) {
+          console.error('MediaPipe Camera also failed:', mediaPipeError);
           setIsCameraReady(false);
         }
       }
