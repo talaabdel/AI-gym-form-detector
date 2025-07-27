@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
 interface LandingPageProps {
@@ -12,6 +12,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onViewProgress,
   onSetReminders
 }) => {
+  const [isLockedIn, setIsLockedIn] = useState(false);
+
+  const handleLockIn = () => {
+    setIsLockedIn(true);
+  };
+
   return (
         <div className="h-full bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 p-5 flex flex-col">
       
@@ -35,49 +41,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </motion.div>
 
-      {/* Daily Check-in Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.6 }}
-        className="bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 rounded-3xl p-5 mb-8 border border-purple-200/50 shadow-lg backdrop-blur-sm"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <h3 className="font-bold text-gray-800 text-base mb-1">Daily Check-in</h3>
-            <p className="text-sm text-gray-600">How are you feeling today?</p>
-          </div>
-          <div className="flex gap-3">
-            <motion.button
-              whileHover={{ scale: 1.15, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-10 h-10 rounded-full bg-gradient-to-br from-green-100 to-green-200 text-green-600 text-lg font-bold border-2 border-green-300 shadow-md hover:shadow-lg transition-all duration-200"
-            >
-              😊
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.15, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-100 to-yellow-200 text-yellow-600 text-lg font-bold border-2 border-yellow-300 shadow-md hover:shadow-lg transition-all duration-200"
-            >
-              😐
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.15, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-10 h-10 rounded-full bg-gradient-to-br from-red-100 to-red-200 text-red-600 text-lg font-bold border-2 border-red-300 shadow-md hover:shadow-lg transition-all duration-200"
-            >
-              😔
-            </motion.button>
-          </div>
-        </div>
-      </motion.div>
-
       {/* Main Feature Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.6 }}
+        transition={{ delay: 0.2, duration: 0.6 }}
         className="bg-gradient-to-br from-pink-500 via-pink-600 to-pink-500 rounded-3xl p-6 mb-8 shadow-xl border border-pink-400/50"
       >
         <div className="flex items-center gap-4 mb-4">
@@ -89,6 +57,67 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <p className="text-white text-sm leading-relaxed opacity-95">
           Get real-time feedback on your squat form, deadlifts, and more. Like having your bestie spot you through FaceTime!
         </p>
+      </motion.div>
+
+      {/* Locked In Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.6 }}
+        className="bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 rounded-3xl p-5 mb-8 border border-purple-200/50 shadow-lg backdrop-blur-sm"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h3 className="font-bold text-gray-800 text-base mb-1">Are you locked in for today?</h3>
+            <p className="text-sm text-gray-600">Ready to crush your goals? 💪</p>
+          </div>
+          <motion.div
+            animate={{ scale: isLockedIn ? [1, 1.2, 1] : 1 }}
+            transition={{ duration: 0.3 }}
+            className="text-3xl mr-3"
+          >
+            {isLockedIn ? '🔒' : '🔓'}
+          </motion.div>
+        </div>
+        
+        {!isLockedIn && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.4 }}
+            className="flex gap-3 mt-4"
+          >
+            <motion.button
+              onClick={handleLockIn}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex-1 bg-gradient-to-r from-pink-400 to-pink-500 text-white font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 text-sm"
+            >
+              Yes
+            </motion.button>
+            <motion.button
+              onClick={handleLockIn}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 text-sm"
+            >
+              Hell Yes! 🔥
+            </motion.button>
+          </motion.div>
+        )}
+        
+        {isLockedIn && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1, duration: 0.4 }}
+            className="mt-4 p-3 bg-gradient-to-r from-green-100 to-green-200 rounded-xl border border-green-300"
+          >
+            <p className="text-green-800 font-semibold text-sm text-center">
+              🔒 Locked in and ready to slay! Let's get it! 💪
+            </p>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Action Buttons */}
