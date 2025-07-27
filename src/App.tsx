@@ -218,10 +218,10 @@ function App() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3 }}
-                className="px-4 pb-16 h-full overflow-hidden"
+                className="px-4 pb-16 h-full overflow-hidden pt-6"
               >
                 {/* Navigation - Moved to top */}
-                <div className="flex justify-center gap-4 mb-4">
+                <div className="flex justify-center gap-4 mb-6">
                   <motion.button
                     onClick={() => setCurrentView('coach-selection')}
                     whileHover={{ scale: 1.05 }}
@@ -240,7 +240,7 @@ function App() {
                   </motion.button>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <CameraView
                     key={selectedCoach.id} // Force re-initialization when coach changes
                     coach={selectedCoach}
