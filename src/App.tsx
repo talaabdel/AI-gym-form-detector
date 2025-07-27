@@ -162,24 +162,7 @@ function App() {
             <Toaster />
             
                                                                         {/* Header - Only show on landing page */}
-             {currentView === 'landing' && (
-               <header className="pt-12 pb-6 px-6 text-center">
-                 <motion.div
-                   initial={{ opacity: 0, y: -20 }}
-                   animate={{ opacity: 1, y: 0 }}
-                   className="flex flex-col items-center mb-4"
-                 >
-                   <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent mb-4">
-                     SMS – Spot Me Sis ✨
-                   </h1>
-                   <img 
-                     src="/images/logo.png" 
-                     alt="Spot Me Sis Logo" 
-                     className="w-24 h-24 rounded-xl shadow-xl border-2 border-pink-200 hover:scale-105 transition-transform duration-300"
-                   />
-                 </motion.div>
-               </header>
-             )}
+             
 
           <main className="h-full">
             <AnimatePresence mode="wait">
