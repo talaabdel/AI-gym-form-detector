@@ -25,14 +25,21 @@ export const CameraView: React.FC<CameraViewProps> = ({
     isCameraReady,
     currentPose,
     formScore,
-    isInSquatPosition,
+    isInExercisePosition,
+    currentExercise: detectedExercise,
     videoRef,
     canvasRef,
     startCamera,
     stopCamera,
     detectPose,
-    analyzeSquatForm
+    analyzeForm,
+    setExercise
   } = usePoseDetection();
+
+  useEffect(() => {
+    // Set the exercise when component mounts or exercise changes
+    setExercise(currentExercise);
+  }, [currentExercise, setExercise]);
 
   useEffect(() => {
     // Add a small delay to ensure previous stream is fully stopped
@@ -94,11 +101,11 @@ export const CameraView: React.FC<CameraViewProps> = ({
       const timeSinceLastFeedback = now - lastFeedbackTime.current;
       
       // Update form data in parent component
-      onFormUpdate(formScore, isInSquatPosition);
+      onFormUpdate(formScore, isInExercisePosition);
       
       // Only give feedback every 3 seconds and when in squat position
-      if (timeSinceLastFeedback >= 3000 && isInSquatPosition) {
-        const feedback = analyzeSquatForm(currentPose.poseLandmarks);
+      if (timeSinceLastFeedback >= 3000 && isInExercisePosition) {
+        const feedback = analyzeForm(currentPose.poseLandmarks, currentExercise);
         if (feedback) {
           // Add personality to feedback
           const messages = feedbackMessages[coach.id as keyof typeof feedbackMessages];
@@ -117,7 +124,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
         }
       }
     }
-  }, [currentPose, coach.id, onFeedback, onFormUpdate, isLoading, isCameraReady, isInSquatPosition, formScore]);
+  }, [currentPose, coach.id, onFeedback, onFormUpdate, isLoading, isCameraReady, isInExercisePosition, formScore]);
 
   if (isLoading) {
     return (
@@ -169,7 +176,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
         </div>
 
         {/* Form Score Display */}
-        {isInSquatPosition && (
+        {isInExercisePosition && (
           <div className="absolute top-16 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full">
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-gray-800">Form Score:</span>
@@ -184,10 +191,10 @@ export const CameraView: React.FC<CameraViewProps> = ({
         )}
 
         {/* Squat Position Indicator */}
-        {isInSquatPosition && (
+        {isInExercisePosition && (
           <div className="absolute bottom-16 left-4 bg-green-500/90 backdrop-blur-sm px-3 py-2 rounded-full">
             <div className="flex items-center gap-2 text-white">
-              <span className="text-sm">🦵 In Squat Position</span>
+              <span className="text-sm">🦵 In {currentExercise} Position</span>
             </div>
           </div>
         )}
@@ -219,7 +226,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
             <div>Camera: {isCameraReady ? '✅ Ready' : '❌ Loading'}</div>
             <div>Pose: {currentPose ? '✅ Detected' : '❌ None'}</div>
             <div>Score: {formScore}%</div>
-            <div>Squat: {isInSquatPosition ? '✅ Yes' : '❌ No'}</div>
+            <div>{currentExercise}: {isInExercisePosition ? '✅ Yes' : '❌ No'}</div>
           </div>
         )}
       </div>

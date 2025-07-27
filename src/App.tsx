@@ -23,11 +23,11 @@ function App() {
   const [isWorkoutPaused, setIsWorkoutPaused] = useState(false);
   const [currentSession, setCurrentSession] = useState<WorkoutSession | null>(null);
   const [progressPhotos, setProgressPhotos] = useState<ProgressPhoto[]>([]);
-  const [currentExercise] = useState('squat');
+  const [currentExercise, setCurrentExercise] = useState('squat');
   const [progressView, setProgressView] = useState<ProgressView>({ isOpen: false, selectedPhoto: null });
   const [reminderSetupOpen, setReminderSetupOpen] = useState(false);
   const [formScore, setFormScore] = useState(0);
-  const [isInSquatPosition, setIsInSquatPosition] = useState(false);
+  const [isInExercisePosition, setIsInExercisePosition] = useState(false);
 
   const handleStartWorkout = () => {
     setCurrentView('coach-selection');
@@ -41,8 +41,9 @@ function App() {
     setCurrentView('landing');
   };
 
-  const handleCoachSelect = (coach: CoachPersonality) => {
+  const handleCoachSelect = (coach: CoachPersonality, exercise: string) => {
     setSelectedCoach(coach);
+    setCurrentExercise(exercise);
     setTimeout(() => setCurrentView('workout'), 500);
   };
 
@@ -63,9 +64,9 @@ function App() {
     setTimeout(() => setCurrentFeedback(null), 4000);
   }, [currentSession]);
 
-  const handleFormUpdate = useCallback((score: number, inSquatPosition: boolean) => {
+  const handleFormUpdate = useCallback((score: number, inExercisePosition: boolean) => {
     setFormScore(score);
-    setIsInSquatPosition(inSquatPosition);
+    setIsInExercisePosition(inExercisePosition);
   }, []);
 
   const startWorkout = () => {
@@ -269,7 +270,7 @@ function App() {
                     photos={progressPhotos}
                     currentSession={currentSession}
                     realTimeFormScore={formScore}
-                    isInSquatPosition={isInSquatPosition}
+                    isInSquatPosition={isInExercisePosition}
                   />
                 </div>
               </motion.div>

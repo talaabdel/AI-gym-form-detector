@@ -9,7 +9,8 @@ export const usePoseDetection = () => {
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [currentPose, setCurrentPose] = useState<Results | null>(null);
   const [formScore, setFormScore] = useState(0);
-  const [isInSquatPosition, setIsInSquatPosition] = useState(false);
+  const [isInExercisePosition, setIsInExercisePosition] = useState(false);
+  const [currentExercise, setCurrentExercise] = useState('squat');
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -51,9 +52,8 @@ export const usePoseDetection = () => {
     setCurrentPose(results);
     
     if (results.poseLandmarks) {
-      const feedback = analyzeSquatForm(results.poseLandmarks);
+      const feedback = analyzeForm(results.poseLandmarks, currentExercise);
       if (feedback) {
-        // This will be handled by the parent component
         console.log('Form feedback:', feedback);
       }
     }
@@ -83,7 +83,7 @@ export const usePoseDetection = () => {
         }
       }
     }
-  }, []);
+  }, [currentExercise]);
 
   const startCamera = async () => {
     try {
@@ -161,76 +161,77 @@ export const usePoseDetection = () => {
     setIsCameraReady(false);
     setCurrentPose(null);
     setFormScore(0);
-    setIsInSquatPosition(false);
+    setIsInExercisePosition(false);
+  };
+
+  const analyzeForm = (landmarks: NormalizedLandmark[], exercise: string): FormFeedback | null => {
+    if (!landmarks || landmarks.length === 0) return null;
+
+    switch (exercise) {
+      case 'squat':
+        return analyzeSquatForm(landmarks);
+      case 'pushup':
+        return analyzePushupForm(landmarks);
+      case 'plank':
+        return analyzePlankForm(landmarks);
+      case 'glutebridge':
+        return analyzeGluteBridgeForm(landmarks);
+      case 'deadlift':
+        return analyzeDeadliftForm(landmarks);
+      case 'lunges':
+        return analyzeLungeForm(landmarks);
+      default:
+        return analyzeSquatForm(landmarks); // Default fallback
+    }
   };
 
   const analyzeSquatForm = (landmarks: NormalizedLandmark[]): FormFeedback | null => {
-    if (!landmarks || landmarks.length === 0) return null;
-
-    // Get key landmarks for squat analysis
-    const leftHip = landmarks[23]; // Left hip
-    const rightHip = landmarks[24]; // Right hip
-    const leftKnee = landmarks[25]; // Left knee
-    const rightKnee = landmarks[26]; // Right knee
-    const leftAnkle = landmarks[27]; // Left ankle
-    const rightAnkle = landmarks[28]; // Right ankle
-    const leftShoulder = landmarks[11]; // Left shoulder
-    const rightShoulder = landmarks[12]; // Right shoulder
+    const leftHip = landmarks[23];
+    const rightHip = landmarks[24];
+    const leftKnee = landmarks[25];
+    const rightKnee = landmarks[26];
+    const leftAnkle = landmarks[27];
+    const rightAnkle = landmarks[28];
+    const leftShoulder = landmarks[11];
+    const rightShoulder = landmarks[12];
 
     if (!leftHip || !rightHip || !leftKnee || !rightKnee || !leftAnkle || !rightAnkle) {
       return null;
     }
 
-    // Calculate squat depth
-    const avgHipY = (leftHip.y + rightHip.y) / 2;
-    const avgKneeY = (leftKnee.y + rightKnee.y) / 2;
-    const avgAnkleY = (leftAnkle.y + rightAnkle.y) / 2;
-    
-    // Calculate knee angle
     const kneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
-    
-    // Calculate hip angle
     const hipAngle = calculateAngle(leftShoulder, leftHip, leftKnee);
-    
-    // Determine if in squat position
     const isSquatting = kneeAngle < 120 && hipAngle < 160;
-    setIsInSquatPosition(isSquatting);
+    setIsInExercisePosition(isSquatting);
 
-    // Calculate form score (0-100)
     let score = 100;
     let issues: string[] = [];
 
-    // Check squat depth
-    const squatDepth = avgKneeY - avgHipY;
+    const squatDepth = (leftKnee.y + rightKnee.y) / 2 - (leftHip.y + rightHip.y) / 2;
     if (squatDepth < 0.1) {
       score -= 30;
       issues.push('depth');
     }
 
-    // Check knee alignment (knees should not go past toes)
     const kneeToeAlignment = leftKnee.x - leftAnkle.x;
     if (kneeToeAlignment > 0.05) {
       score -= 20;
       issues.push('knee_alignment');
     }
 
-    // Check knee angle for proper squat depth
     if (kneeAngle > 110) {
       score -= 25;
       issues.push('knee_angle');
     }
 
-    // Check hip angle
     if (hipAngle > 150) {
       score -= 15;
       issues.push('hip_angle');
     }
 
-    // Ensure score doesn't go below 0
     score = Math.max(0, score);
     setFormScore(score);
 
-    // Generate feedback based on issues
     if (score >= 90) {
       return {
         type: 'good',
@@ -269,6 +270,388 @@ export const usePoseDetection = () => {
     }
   };
 
+  const analyzePushupForm = (landmarks: NormalizedLandmark[]): FormFeedback | null => {
+    const leftShoulder = landmarks[11];
+    const rightShoulder = landmarks[12];
+    const leftElbow = landmarks[13];
+    const rightElbow = landmarks[14];
+    const leftWrist = landmarks[15];
+    const rightWrist = landmarks[16];
+    const leftHip = landmarks[23];
+    const rightHip = landmarks[24];
+
+    if (!leftShoulder || !rightShoulder || !leftElbow || !rightElbow || !leftWrist || !rightWrist) {
+      return null;
+    }
+
+    const elbowAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
+    const isInPushupPosition = elbowAngle < 90 && leftShoulder.y > leftElbow.y;
+    setIsInExercisePosition(isInPushupPosition);
+
+    let score = 100;
+    let issues: string[] = [];
+
+    // Check if body is straight
+    const shoulderHipAngle = Math.abs(leftShoulder.y - leftHip.y);
+    if (shoulderHipAngle > 0.1) {
+      score -= 25;
+      issues.push('body_alignment');
+    }
+
+    // Check elbow angle
+    if (elbowAngle > 100) {
+      score -= 20;
+      issues.push('elbow_angle');
+    }
+
+    // Check if going low enough
+    const pushupDepth = leftShoulder.y - leftElbow.y;
+    if (pushupDepth < 0.05) {
+      score -= 30;
+      issues.push('depth');
+    }
+
+    score = Math.max(0, score);
+    setFormScore(score);
+
+    if (score >= 90) {
+      return {
+        type: 'good',
+        message: 'Perfect push-up form! You\'re getting stronger! 💪',
+        exercise: 'pushup',
+        timestamp: Date.now(),
+        score: score
+      };
+    } else if (score >= 70) {
+      return {
+        type: 'warning',
+        message: 'Good push-up! Keep that body straight! 🔥',
+        exercise: 'pushup',
+        timestamp: Date.now(),
+        score: score
+      };
+    } else {
+      let message = 'Let\'s improve that push-up! ';
+      if (issues.includes('body_alignment')) {
+        message += 'Keep your body in a straight line! 📏';
+      } else if (issues.includes('elbow_angle')) {
+        message += 'Bend those elbows more! 💪';
+      } else if (issues.includes('depth')) {
+        message += 'Go lower! Touch that chest to the ground! 🎯';
+      } else {
+        message += 'Focus on your form! You got this! ✨';
+      }
+
+      return {
+        type: 'error',
+        message: message,
+        exercise: 'pushup',
+        timestamp: Date.now(),
+        score: score
+      };
+    }
+  };
+
+  const analyzePlankForm = (landmarks: NormalizedLandmark[]): FormFeedback | null => {
+    const leftShoulder = landmarks[11];
+    const rightShoulder = landmarks[12];
+    const leftHip = landmarks[23];
+    const rightHip = landmarks[24];
+    const leftKnee = landmarks[25];
+    const rightKnee = landmarks[26];
+
+    if (!leftShoulder || !rightShoulder || !leftHip || !rightHip) {
+      return null;
+    }
+
+    const bodyAngle = Math.abs(leftShoulder.y - leftHip.y);
+    const isInPlankPosition = bodyAngle < 0.05 && leftShoulder.y < leftHip.y;
+    setIsInExercisePosition(isInPlankPosition);
+
+    let score = 100;
+    let issues: string[] = [];
+
+    // Check body alignment
+    if (bodyAngle > 0.05) {
+      score -= 40;
+      issues.push('body_alignment');
+    }
+
+    // Check if hips are too high or low
+    const hipHeight = (leftHip.y + rightHip.y) / 2;
+    const shoulderHeight = (leftShoulder.y + rightShoulder.y) / 2;
+    const heightDiff = Math.abs(hipHeight - shoulderHeight);
+    if (heightDiff > 0.1) {
+      score -= 30;
+      issues.push('hip_position');
+    }
+
+    score = Math.max(0, score);
+    setFormScore(score);
+
+    if (score >= 90) {
+      return {
+        type: 'good',
+        message: 'Perfect plank! Your core is on fire! 🔥',
+        exercise: 'plank',
+        timestamp: Date.now(),
+        score: score
+      };
+    } else if (score >= 70) {
+      return {
+        type: 'warning',
+        message: 'Good plank! Keep that body straight! 📏',
+        exercise: 'plank',
+        timestamp: Date.now(),
+        score: score
+      };
+    } else {
+      let message = 'Let\'s fix that plank! ';
+      if (issues.includes('body_alignment')) {
+        message += 'Keep your body in a straight line! 📏';
+      } else if (issues.includes('hip_position')) {
+        message += 'Don\'t let your hips sag! Keep them up! 🍑';
+      } else {
+        message += 'Focus on your form! You got this! ✨';
+      }
+
+      return {
+        type: 'error',
+        message: message,
+        exercise: 'plank',
+        timestamp: Date.now(),
+        score: score
+      };
+    }
+  };
+
+  const analyzeGluteBridgeForm = (landmarks: NormalizedLandmark[]): FormFeedback | null => {
+    const leftHip = landmarks[23];
+    const rightHip = landmarks[24];
+    const leftKnee = landmarks[25];
+    const rightKnee = landmarks[26];
+    const leftShoulder = landmarks[11];
+    const rightShoulder = landmarks[12];
+
+    if (!leftHip || !rightHip || !leftKnee || !rightKnee) {
+      return null;
+    }
+
+    const hipHeight = (leftHip.y + rightHip.y) / 2;
+    const kneeHeight = (leftKnee.y + rightKnee.y) / 2;
+    const shoulderHeight = (leftShoulder.y + rightShoulder.y) / 2;
+    
+    const isBridging = hipHeight < kneeHeight && hipHeight < shoulderHeight;
+    setIsInExercisePosition(isBridging);
+
+    let score = 100;
+    let issues: string[] = [];
+
+    // Check bridge height
+    const bridgeHeight = shoulderHeight - hipHeight;
+    if (bridgeHeight < 0.1) {
+      score -= 40;
+      issues.push('height');
+    }
+
+    // Check knee angle
+    const kneeAngle = calculateAngle(leftHip, leftKnee, landmarks[27]); // ankle
+    if (kneeAngle < 80 || kneeAngle > 120) {
+      score -= 30;
+      issues.push('knee_angle');
+    }
+
+    score = Math.max(0, score);
+    setFormScore(score);
+
+    if (score >= 90) {
+      return {
+        type: 'good',
+        message: 'Perfect glute bridge! Booty gains incoming! 🍑',
+        exercise: 'glutebridge',
+        timestamp: Date.now(),
+        score: score
+      };
+    } else if (score >= 70) {
+      return {
+        type: 'warning',
+        message: 'Good bridge! Push those hips higher! 💪',
+        exercise: 'glutebridge',
+        timestamp: Date.now(),
+        score: score
+      };
+    } else {
+      let message = 'Let\'s improve that bridge! ';
+      if (issues.includes('height')) {
+        message += 'Push those hips higher! Lift that booty! 🍑';
+      } else if (issues.includes('knee_angle')) {
+        message += 'Keep your knees at a good angle! 🦵';
+      } else {
+        message += 'Focus on your form! You got this! ✨';
+      }
+
+      return {
+        type: 'error',
+        message: message,
+        exercise: 'glutebridge',
+        timestamp: Date.now(),
+        score: score
+      };
+    }
+  };
+
+  const analyzeDeadliftForm = (landmarks: NormalizedLandmark[]): FormFeedback | null => {
+    const leftShoulder = landmarks[11];
+    const rightShoulder = landmarks[12];
+    const leftHip = landmarks[23];
+    const rightHip = landmarks[24];
+    const leftKnee = landmarks[25];
+    const rightKnee = landmarks[26];
+
+    if (!leftShoulder || !rightShoulder || !leftHip || !rightHip || !leftKnee || !rightKnee) {
+      return null;
+    }
+
+    const hipAngle = calculateAngle(leftShoulder, leftHip, leftKnee);
+    const isDeadlifting = hipAngle < 150 && leftHip.y > leftKnee.y;
+    setIsInExercisePosition(isDeadlifting);
+
+    let score = 100;
+    let issues: string[] = [];
+
+    // Check back straightness
+    const backAngle = Math.abs(leftShoulder.y - leftHip.y);
+    if (backAngle > 0.05) {
+      score -= 40;
+      issues.push('back_straightness');
+    }
+
+    // Check hip hinge
+    if (hipAngle > 160) {
+      score -= 30;
+      issues.push('hip_hinge');
+    }
+
+    score = Math.max(0, score);
+    setFormScore(score);
+
+    if (score >= 90) {
+      return {
+        type: 'good',
+        message: 'Perfect deadlift form! You\'re getting strong! 💪',
+        exercise: 'deadlift',
+        timestamp: Date.now(),
+        score: score
+      };
+    } else if (score >= 70) {
+      return {
+        type: 'warning',
+        message: 'Good deadlift! Keep that back straight! 📏',
+        exercise: 'deadlift',
+        timestamp: Date.now(),
+        score: score
+      };
+    } else {
+      let message = 'Let\'s fix that deadlift! ';
+      if (issues.includes('back_straightness')) {
+        message += 'Keep your back straight! Don\'t round it! 📏';
+      } else if (issues.includes('hip_hinge')) {
+        message += 'Hinge at the hips, not the back! 🍑';
+      } else {
+        message += 'Focus on your form! You got this! ✨';
+      }
+
+      return {
+        type: 'error',
+        message: message,
+        exercise: 'deadlift',
+        timestamp: Date.now(),
+        score: score
+      };
+    }
+  };
+
+  const analyzeLungeForm = (landmarks: NormalizedLandmark[]): FormFeedback | null => {
+    const leftHip = landmarks[23];
+    const rightHip = landmarks[24];
+    const leftKnee = landmarks[25];
+    const rightKnee = landmarks[26];
+    const leftAnkle = landmarks[27];
+    const rightAnkle = landmarks[28];
+
+    if (!leftHip || !rightHip || !leftKnee || !rightKnee || !leftAnkle || !rightAnkle) {
+      return null;
+    }
+
+    const frontKneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
+    const backKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle);
+    const isLunging = frontKneeAngle < 110 && backKneeAngle < 110;
+    setIsInExercisePosition(isLunging);
+
+    let score = 100;
+    let issues: string[] = [];
+
+    // Check front knee alignment
+    const kneeToeAlignment = Math.abs(leftKnee.x - leftAnkle.x);
+    if (kneeToeAlignment > 0.05) {
+      score -= 30;
+      issues.push('knee_alignment');
+    }
+
+    // Check depth
+    const lungeDepth = Math.abs(leftKnee.y - rightKnee.y);
+    if (lungeDepth < 0.1) {
+      score -= 25;
+      issues.push('depth');
+    }
+
+    // Check back knee
+    if (rightKnee.y > 0.1) {
+      score -= 20;
+      issues.push('back_knee');
+    }
+
+    score = Math.max(0, score);
+    setFormScore(score);
+
+    if (score >= 90) {
+      return {
+        type: 'good',
+        message: 'Perfect lunge! Your balance is incredible! ⚖️',
+        exercise: 'lunges',
+        timestamp: Date.now(),
+        score: score
+      };
+    } else if (score >= 70) {
+      return {
+        type: 'warning',
+        message: 'Good lunge! Go a bit deeper! 💪',
+        exercise: 'lunges',
+        timestamp: Date.now(),
+        score: score
+      };
+    } else {
+      let message = 'Let\'s improve that lunge! ';
+      if (issues.includes('knee_alignment')) {
+        message += 'Keep your front knee behind your toe! 🦵';
+      } else if (issues.includes('depth')) {
+        message += 'Go deeper! Lower that back knee! 📉';
+      } else if (issues.includes('back_knee')) {
+        message += 'Don\'t let your back knee touch the ground! 🚫';
+      } else {
+        message += 'Focus on your form! You got this! ✨';
+      }
+
+      return {
+        type: 'error',
+        message: message,
+        exercise: 'lunges',
+        timestamp: Date.now(),
+        score: score
+      };
+    }
+  };
+
   const calculateAngle = (point1: NormalizedLandmark, point2: NormalizedLandmark, point3: NormalizedLandmark): number => {
     const angle = Math.atan2(point3.y - point2.y, point3.x - point2.x) -
                   Math.atan2(point1.y - point2.y, point1.x - point2.x);
@@ -287,17 +670,23 @@ export const usePoseDetection = () => {
     }
   }, [isCameraReady]);
 
+  const setExercise = (exercise: string) => {
+    setCurrentExercise(exercise);
+  };
+
   return {
     isLoading,
     isCameraReady,
     currentPose,
     formScore,
-    isInSquatPosition,
+    isInExercisePosition,
+    currentExercise,
     videoRef,
     canvasRef,
     startCamera,
     stopCamera,
     detectPose,
-    analyzeSquatForm
+    analyzeForm,
+    setExercise
   };
 };

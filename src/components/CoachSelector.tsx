@@ -6,7 +6,7 @@ import { AnimatePresence } from 'framer-motion';
 
 interface CoachSelectorProps {
   selectedCoach: CoachPersonality | null;
-  onSelectCoach: (coach: CoachPersonality) => void;
+  onSelectCoach: (coach: CoachPersonality, exercise: string) => void;
 }
 
 const exercises = [
@@ -105,7 +105,7 @@ export const CoachSelector: React.FC<CoachSelectorProps> = ({
         {coaches.map((coach, index) => (
           <motion.button
             key={coach.id}
-            onClick={() => onSelectCoach(coach)}
+            onClick={() => onSelectCoach(coach, selectedExercise)}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1, duration: 0.5 }}
