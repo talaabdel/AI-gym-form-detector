@@ -68,20 +68,8 @@ export const CameraView: React.FC<CameraViewProps> = ({
     
     testCameraAPI();
     
-    // Add a small delay to ensure previous stream is fully stopped
-    const timer = setTimeout(async () => {
-      try {
-        setCameraError(null);
-        await startCamera();
-      } catch (error) {
-        console.error('Camera start error:', error);
-        setCameraError(error instanceof Error ? error.message : 'Failed to start camera');
-      }
-    }, 100);
-    
     // Cleanup function to stop camera when component unmounts or coach changes
     return () => {
-      clearTimeout(timer);
       stopCamera();
     };
   }, [coach.id]); // Reinitialize when coach changes
@@ -357,9 +345,29 @@ export const CameraView: React.FC<CameraViewProps> = ({
         {!isCameraReady && !cameraError && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <div className="text-center text-white">
-              <div className="text-4xl mb-2">📷</div>
-              <p className="text-sm">Camera starting up...</p>
-              <p className="text-xs mt-2 opacity-75">Please allow camera access</p>
+              <div className="text-4xl mb-4">📷</div>
+              <h3 className="text-lg font-bold mb-2">Camera Not Started</h3>
+              <p className="text-sm mb-4">Click the button below to start your camera</p>
+              
+              <button 
+                onClick={async () => {
+                  try {
+                    setCameraError(null);
+                    console.log('User-initiated camera start...');
+                    await startCamera();
+                  } catch (error) {
+                    console.error('Camera start error:', error);
+                    setCameraError(error instanceof Error ? error.message : 'Failed to start camera');
+                  }
+                }}
+                className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-lg text-lg font-medium transition-colors"
+              >
+                Start Camera
+              </button>
+              
+              <p className="text-xs mt-4 opacity-75">
+                Camera access requires user interaction for security
+              </p>
             </div>
           </div>
         )}
@@ -442,16 +450,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
           </div>
         )}
 
-        {/* Camera debug info - always show when there are issues */}
-        {cameraError && (
-          <div className="absolute top-4 left-4 bg-red-900/90 text-white text-xs p-2 rounded">
-            <div>Protocol: {window.location.protocol}</div>
-            <div>Host: {window.location.hostname}</div>
-            <div>MediaDevices: {navigator.mediaDevices ? '✅' : '❌'}</div>
-            <div>getUserMedia: {navigator.mediaDevices?.getUserMedia ? '✅' : '❌'}</div>
-            <div>Error: {cameraError}</div>
-          </div>
-        )}
+
       </div>
     </div>
   );
