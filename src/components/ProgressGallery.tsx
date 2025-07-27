@@ -69,7 +69,7 @@ export const ProgressGallery: React.FC<ProgressGalleryProps> = ({
                       </div>
                       <div className="font-semibold text-sm">{photo.exercise}</div>
                     </div>
-                    <div className="absolute top-3 right-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-lg">
+                    <div className="absolute top-3 right-3 bg-pink-200 text-pink-800 text-xs px-2 py-1 rounded-full font-medium shadow-lg">
                       Perfect! ✨
                     </div>
                   </motion.div>

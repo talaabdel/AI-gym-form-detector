@@ -37,37 +37,7 @@ export const HomePageImage: React.FC<HomePageImageProps> = ({ onGetStarted }) =>
              ✨
            </motion.div>
            
-           <motion.div
-             animate={{ 
-               y: [0, 10, 0],
-               rotate: [0, -5, 0]
-             }}
-             transition={{ 
-               duration: 4, 
-               repeat: Infinity, 
-               ease: "easeInOut",
-               delay: 1
-             }}
-             className="absolute top-20 left-6 text-purple-300 text-xl z-40"
-           >
-             💪
-           </motion.div>
-           
-           <motion.div
-             animate={{ 
-               y: [0, -8, 0],
-               scale: [1, 1.1, 1]
-             }}
-             transition={{ 
-               duration: 3.5, 
-               repeat: Infinity, 
-               ease: "easeInOut",
-               delay: 2
-             }}
-             className="absolute bottom-32 right-6 text-pink-300 text-lg z-40"
-           >
-             💖
-           </motion.div>
+
            
            {/* Enhanced Tagline */}
                        <div className="absolute top-24 left-0 right-0 flex justify-center z-50">
