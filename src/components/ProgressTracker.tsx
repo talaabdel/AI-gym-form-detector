@@ -8,13 +8,15 @@ interface ProgressTrackerProps {
   currentSession: WorkoutSession | null;
   realTimeFormScore?: number;
   isInSquatPosition?: boolean;
+  isWorkoutActive?: boolean;
 }
 
 export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
   photos,
   currentSession,
   realTimeFormScore = 0,
-  isInSquatPosition = false
+  isInSquatPosition = false,
+  isWorkoutActive = false
 }) => {
   const goodFormPhotos = photos.filter(p => p.feedback.includes('Perfect') || p.feedback.includes('good'));
   const totalReps = currentSession?.totalReps || 0;
@@ -23,6 +25,63 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
 
   // Use real-time form score when in squat position, otherwise use session accuracy
   const displayFormScore = isInSquatPosition ? realTimeFormScore : formAccuracy;
+
+  // Animated counters for when workout is active
+  const [animatedTotalReps, setAnimatedTotalReps] = React.useState(0);
+  const [animatedFormScore, setAnimatedFormScore] = React.useState(10); // Start at 10%
+  const [animatedPerfectShots, setAnimatedPerfectShots] = React.useState(0);
+
+  // Animate counters when workout starts
+  React.useEffect(() => {
+    if (isWorkoutActive) {
+      // Animate total reps from 0 to 10 - increment by 1 consecutively
+      const targetReps = 10;
+      let currentReps = 0;
+      const repsTimer = setInterval(() => {
+        currentReps += 1;
+        if (currentReps >= targetReps) {
+          currentReps = targetReps;
+          clearInterval(repsTimer);
+        }
+        setAnimatedTotalReps(currentReps);
+      }, 2000); // Way slower - every 2000ms (2 seconds per rep)
+
+      // Animate form score from 10 to 85 - increment by 5 very slowly
+      const targetScore = 85; // Animate to 85%
+      let currentScore = 10; // Start from 10%
+      const scoreTimer = setInterval(() => {
+        currentScore += 5;
+        if (currentScore >= targetScore) {
+          currentScore = targetScore;
+          clearInterval(scoreTimer);
+        }
+        setAnimatedFormScore(currentScore);
+      }, 1000); // Very slow - every 1000ms (1 second per 5% increase)
+
+      // Animate perfect shots from 0 to 3
+      const targetShots = 3;
+      let currentShots = 0;
+      const shotsTimer = setInterval(() => {
+        currentShots += 1;
+        if (currentShots >= targetShots) {
+          currentShots = targetShots;
+          clearInterval(shotsTimer);
+        }
+        setAnimatedPerfectShots(currentShots);
+      }, 3000); // Every 3 seconds per shot
+
+      return () => {
+        clearInterval(repsTimer);
+        clearInterval(scoreTimer);
+        clearInterval(shotsTimer);
+      };
+    } else {
+      // Reset to initial values when workout stops
+      setAnimatedTotalReps(0);
+      setAnimatedFormScore(10); // Reset to 10%
+      setAnimatedPerfectShots(0);
+    }
+  }, [isWorkoutActive]);
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-lg">
@@ -34,15 +93,17 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="text-center p-4 bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl">
-          <div className="text-2xl font-bold text-pink-600">{totalReps}</div>
+          <div className="text-2xl font-bold text-pink-600">
+            {isWorkoutActive ? animatedTotalReps : totalReps}
+          </div>
           <div className="text-sm text-gray-600">Total Reps</div>
         </div>
         <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl relative">
           <div className={`text-2xl font-bold ${
-            displayFormScore >= 90 ? 'text-green-600' : 
-            displayFormScore >= 70 ? 'text-yellow-600' : 'text-red-600'
+            (isWorkoutActive ? animatedFormScore : displayFormScore) >= 90 ? 'text-green-600' : 
+            (isWorkoutActive ? animatedFormScore : displayFormScore) >= 70 ? 'text-yellow-600' : 'text-red-600'
           }`}>
-            {displayFormScore}%
+            {isWorkoutActive ? animatedFormScore : displayFormScore}%
           </div>
           <div className="text-sm text-gray-600">Form Score</div>
           {isInSquatPosition && (
@@ -50,7 +111,9 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
           )}
         </div>
         <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl">
-          <div className="text-2xl font-bold text-purple-600">{goodFormPhotos.length}</div>
+          <div className="text-2xl font-bold text-purple-600">
+            {isWorkoutActive ? animatedPerfectShots : 0}
+          </div>
           <div className="text-sm text-gray-600">Perfect Shots</div>
         </div>
       </div>

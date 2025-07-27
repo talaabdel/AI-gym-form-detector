@@ -255,6 +255,7 @@ function App() {
                     onFeedback={handleFeedback}
                     onFormUpdate={handleFormUpdate}
                     currentExercise={currentExercise}
+                    isWorkoutActive={isWorkoutActive}
                   />
                   
                   <WorkoutControls
@@ -271,6 +272,7 @@ function App() {
                     currentSession={currentSession}
                     realTimeFormScore={formScore}
                     isInSquatPosition={isInExercisePosition}
+                    isWorkoutActive={isWorkoutActive}
                   />
                 </div>
               </motion.div>
