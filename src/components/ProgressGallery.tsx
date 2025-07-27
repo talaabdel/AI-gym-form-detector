@@ -31,10 +31,9 @@ export const ProgressGallery: React.FC<ProgressGalleryProps> = ({
   return (
     <div className="h-full bg-white">
       {/* Content */}
-      <div className="p-3">
-
+      <div className="h-full p-4">
         {/* Content */}
-        <div className="overflow-y-auto max-h-[calc(100vh-200px)]">
+        <div className="h-full overflow-y-auto">
           {photos.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-24 h-24 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -44,37 +43,47 @@ export const ProgressGallery: React.FC<ProgressGalleryProps> = ({
               <p className="text-gray-500">Start your workout to capture some amazing progress shots! 💪</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
-              {photos.map((photo) => (
-                <motion.div
-                  key={photo.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="relative group cursor-pointer"
-                  onClick={() => onSelectPhoto(photo)}
-                >
-                  <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg">
-                    <img
-                      src={photo.imageData}
-                      alt={`${photo.exercise} form`}
-                      className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <div className="absolute bottom-2 left-2 right-2 text-white text-xs">
-                    <div className="flex items-center gap-1 mb-1">
-                      <CalendarIcon className="w-3 h-3" />
-                      <span>{formatDate(photo.timestamp)}</span>
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                {photos.map((photo) => (
+                  <motion.div
+                    key={photo.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    whileHover={{ scale: 1.02 }}
+                    className="relative group cursor-pointer"
+                    onClick={() => onSelectPhoto(photo)}
+                  >
+                    <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100 shadow-lg border border-gray-200">
+                      <img
+                        src={photo.imageData}
+                        alt={`${photo.exercise} form`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
-                    <div className="font-medium">{photo.exercise}</div>
-                  </div>
-                  <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-                    Perfect! ✨
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                    <div className="absolute bottom-3 left-3 right-3 text-white text-xs">
+                      <div className="flex items-center gap-1 mb-1">
+                        <CalendarIcon className="w-3 h-3" />
+                        <span className="font-medium">{formatDate(photo.timestamp)}</span>
+                      </div>
+                      <div className="font-semibold text-sm">{photo.exercise}</div>
+                    </div>
+                    <div className="absolute top-3 right-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-lg">
+                      Perfect! ✨
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              
+              {/* Encouraging message at the bottom */}
+              <div className="text-center mt-8 mb-4">
+                <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-6 border border-pink-200">
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">Here's your best forms so far! 💪</h3>
+                  <p className="text-gray-600 font-medium">Keep going girl, you're absolutely crushing it! ✨</p>
+                </div>
+              </div>
+            </>
           )}
         </div>
 

@@ -147,6 +147,20 @@ function App() {
         exercise: 'Planks',
         timestamp: Date.now() - 345600000, // 4 days ago
         feedback: 'Perfect plank position! Core is on fire! 🔥'
+      },
+      {
+        id: '5',
+        imageData: '/images/lunges.png', // lunges - using the correct image
+        exercise: 'Lunges',
+        timestamp: Date.now() - 432000000, // 5 days ago
+        feedback: 'Amazing lunge form! Your balance is incredible! ⚖️'
+      },
+      {
+        id: '6',
+        imageData: '/images/situp.png', // sit-ups - using the correct image
+        exercise: 'Sit-ups',
+        timestamp: Date.now() - 518400000, // 6 days ago
+        feedback: 'Perfect sit-up technique! Core strength is building! 💪'
       }
     ];
     setProgressPhotos(demoPhotos);
