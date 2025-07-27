@@ -72,29 +72,55 @@ export const CameraView: React.FC<CameraViewProps> = ({
       const cleanMessage = message.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '');
       
       const utterance = new SpeechSynthesisUtterance(cleanMessage);
-      utterance.rate = 1.2; // Slightly faster for sassy effect
-      utterance.pitch = 1.3; // Higher pitch for girly voice
-      utterance.volume = 0.8;
       
-      // Try to find a female voice
+      // Enhanced girly sassy voice settings
+      utterance.rate = 1.4; // Faster for sassy effect
+      utterance.pitch = 1.5; // Higher pitch for girly voice
+      utterance.volume = 0.9; // Slightly louder
+      
+      // Always use the same girly sassy female voice
       const voices = speechSynthesis.current.getVoices();
-      let femaleVoice = voices.find(voice =>
-        (voice.name.toLowerCase().includes('female') ||
-         voice.name.toLowerCase().includes('woman') ||
-         voice.name.toLowerCase().includes('samantha') ||
-         voice.name.toLowerCase().includes('victoria'))
+      
+      // Priority list for girly sassy voices
+      const girlyVoiceNames = [
+        'samantha',
+        'victoria', 
+        'alex',
+        'karen',
+        'lisa',
+        'sarah',
+        'emma',
+        'olivia',
+        'ava',
+        'isabella'
+      ];
+      
+      // Find the first available girly voice
+      let girlyVoice = voices.find(voice => 
+        girlyVoiceNames.some(name => 
+          voice.name.toLowerCase().includes(name)
+        )
       );
-      if (!femaleVoice) {
-        // fallback: pick the first voice with 'female' in the name
-        femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female'));
+      
+      // If no specific girly voice found, find any female voice
+      if (!girlyVoice) {
+        girlyVoice = voices.find(voice => 
+          voice.name.toLowerCase().includes('female') ||
+          voice.name.toLowerCase().includes('woman') ||
+          voice.name.toLowerCase().includes('girl')
+        );
       }
-      if (!femaleVoice) {
-        // fallback: pick the first available voice
-        femaleVoice = voices[0];
+      
+      // Last resort: use the first available voice
+      if (!girlyVoice && voices.length > 0) {
+        girlyVoice = voices[0];
       }
-      if (femaleVoice) {
-        utterance.voice = femaleVoice;
+      
+      if (girlyVoice) {
+        utterance.voice = girlyVoice;
+        console.log('Using girly sassy voice:', girlyVoice.name);
       }
+      
       speechSynthesis.current.speak(utterance);
     }
   };
