@@ -46,16 +46,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.6 }}
-        className="bg-gradient-to-br from-pink-500 via-pink-600 to-pink-500 rounded-3xl p-6 mb-8 shadow-xl border border-pink-400/50"
+        className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-3xl p-6 mb-8 shadow-xl border border-purple-400/50"
       >
-        <div className="flex items-center gap-4 mb-4">
-          <span className="text-3xl">💪</span>
-          <h3 className="text-white font-bold text-xl">
-            Camera-Based Form Detection
-          </h3>
-        </div>
         <p className="text-white text-sm leading-relaxed opacity-95">
-          Get real-time feedback on your squat form, deadlifts, and more. Like having your bestie spot you through FaceTime!
+        Get instant feedback on your form, like having your bestie spot you over FaceTime!
         </p>
       </motion.div>
 
@@ -69,7 +63,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <h3 className="font-bold text-gray-800 text-base mb-1">Are you locked in for today?</h3>
-            <p className="text-sm text-gray-600">Ready to crush your goals? 💪</p>
+            <p className="text-sm text-gray-600">Ready to crush your goals?</p>
           </div>
           <motion.div
             animate={{ scale: isLockedIn ? [1, 1.2, 1] : 1 }}
@@ -91,7 +85,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={handleLockIn}
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
-              className="flex-1 bg-gradient-to-r from-pink-400 to-pink-500 text-white font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 text-sm"
+              className="flex-1 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 text-sm"
             >
               Yes
             </motion.button>
@@ -99,7 +93,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={handleLockIn}
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
-              className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 text-sm"
+              className="flex-1 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 text-sm"
             >
               Hell Yes! 🔥
             </motion.button>
@@ -114,7 +108,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             className="mt-4 p-3 bg-gradient-to-r from-green-100 to-green-200 rounded-xl border border-green-300"
           >
             <p className="text-green-800 font-semibold text-sm text-center">
-              🔒 Locked in and ready to slay! Let's get it! 💪
+              Locked in and ready to slay! Let's get it! 💪
             </p>
           </motion.div>
         )}
@@ -129,7 +123,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           transition={{ delay: 0.4, duration: 0.6 }}
           whileHover={{ scale: 1.02, y: -3 }}
           whileTap={{ scale: 0.98 }}
-          className="w-full bg-gradient-to-r from-purple-500 via-purple-600 to-purple-500 text-white font-bold py-5 rounded-2xl shadow-lg border border-purple-400/50 hover:shadow-xl transition-all duration-300 text-lg"
+          className="w-full bg-gradient-to-r from-pink-200 via-pink-100 to-pink-200 text-gray-800 font-bold py-5 rounded-2xl shadow-lg border border-pink-300/50 hover:shadow-xl transition-all duration-300 text-lg"
         >
           Start Your Workout ✨
         </motion.button>
@@ -141,7 +135,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           transition={{ delay: 0.5, duration: 0.6 }}
           whileHover={{ scale: 1.02, y: -3 }}
           whileTap={{ scale: 0.98 }}
-          className="w-full bg-white text-gray-700 font-bold py-5 rounded-2xl shadow-lg border-2 border-gray-200 hover:shadow-xl transition-all duration-300 text-lg hover:border-purple-200"
+          className="w-full bg-gradient-to-r from-pink-200 via-pink-100 to-pink-200 text-gray-800 font-bold py-5 rounded-2xl shadow-lg border border-pink-300/50 hover:shadow-xl transition-all duration-300 text-lg"
         >
           View Your Progress 📊
         </motion.button>
@@ -153,7 +147,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           transition={{ delay: 0.6, duration: 0.6 }}
           whileHover={{ scale: 1.02, y: -3 }}
           whileTap={{ scale: 0.98 }}
-          className="w-full bg-gradient-to-r from-pink-400 via-pink-500 to-pink-400 text-white font-bold py-5 rounded-2xl shadow-lg border border-pink-400/50 hover:shadow-xl transition-all duration-300 text-lg"
+          className="w-full bg-gradient-to-r from-pink-200 via-pink-100 to-pink-200 text-gray-800 font-bold py-5 rounded-2xl shadow-lg border border-pink-300/50 hover:shadow-xl transition-all duration-300 text-lg"
         >
           Set Daily Reminders ⏰
         </motion.button>
@@ -166,8 +160,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         transition={{ delay: 0.7, duration: 0.6 }}
         className="text-center mt-6"
       >
-        <p className="text-gray-500 text-sm font-medium">
-          Made with 💗 for girls who want to feel strong and supported
+        <p className="text-purple-600 text-sm font-medium">
+          Made with 💗 for girls who want to feel<br />
+          strong and confident!
         </p>
       </motion.footer>
     </div>
