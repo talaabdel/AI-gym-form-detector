@@ -7,7 +7,6 @@ import { FormFeedback } from '../types';
 export const usePoseDetection = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCameraReady, setIsCameraReady] = useState(false);
-  const [cameraError, setCameraError] = useState<string | null>(null);
   const [currentPose, setCurrentPose] = useState<Results | null>(null);
   const [formScore, setFormScore] = useState(0);
   const [isInExercisePosition, setIsInExercisePosition] = useState(false);
@@ -19,20 +18,10 @@ export const usePoseDetection = () => {
   const cameraRef = useRef<Camera | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Check if we're in a secure context (HTTPS or localhost)
-  const isSecureContext = () => {
-    return window.isSecureContext || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  };
-
   // Initialize MediaPipe Pose
   useEffect(() => {
     const initializePose = async () => {
       try {
-        // Check if we're in a secure context
-        if (!isSecureContext()) {
-          throw new Error('Camera access requires HTTPS or localhost. Please use HTTPS in production.');
-        }
-
         const pose = new Pose({
           locateFile: (file) => {
             return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
@@ -53,7 +42,6 @@ export const usePoseDetection = () => {
         setIsLoading(false);
       } catch (error) {
         console.error('Error initializing MediaPipe Pose:', error);
-        setCameraError(error instanceof Error ? error.message : 'Failed to initialize pose detection');
         setIsLoading(false);
       }
     };
@@ -101,16 +89,10 @@ export const usePoseDetection = () => {
   const startCamera = async () => {
     try {
       if (!poseRef.current || !videoRef.current) {
-        throw new Error('Pose detection not initialized');
-      }
-
-      // Check if we're in a secure context
-      if (!isSecureContext()) {
-        throw new Error('Camera access requires HTTPS or localhost. Please use HTTPS in production.');
+        return;
       }
 
       setIsCameraReady(false);
-      setCameraError(null);
       
       // Try MediaPipe Camera first
       try {
@@ -132,21 +114,15 @@ export const usePoseDetection = () => {
       } catch (mediaPipeError) {
         console.log('MediaPipe Camera failed, trying fallback...', mediaPipeError);
         
-        // Fallback to standard getUserMedia with better error handling
+        // Fallback to standard getUserMedia
         try {
           console.log('Attempting fallback camera access...');
           
-          // Check if getUserMedia is supported
-          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            throw new Error('Camera access not supported in this browser');
-          }
-
           const stream = await navigator.mediaDevices.getUserMedia({
             video: { 
               width: { ideal: 640 },
               height: { ideal: 480 },
-              facingMode: 'user',
-              frameRate: { ideal: 30 }
+              facingMode: 'user'
             },
             audio: false
           });
@@ -155,32 +131,11 @@ export const usePoseDetection = () => {
           
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
-            
-            // Wait for video to be ready
-            await new Promise((resolve, reject) => {
-              if (!videoRef.current) {
-                reject(new Error('Video element not available'));
-                return;
-              }
-              
-              videoRef.current.onloadedmetadata = () => {
-                console.log('Video metadata loaded');
-                resolve(true);
-              };
-              
-              videoRef.current.onerror = () => {
-                reject(new Error('Video loading failed'));
-              };
-              
-              // Set a timeout in case the video never loads
-              setTimeout(() => {
-                reject(new Error('Video loading timeout'));
-              }, 10000);
-            });
-            
+            videoRef.current.onloadedmetadata = () => {
+              setIsCameraReady(true);
+              console.log('Fallback camera started successfully');
+            };
             await videoRef.current.play();
-            setIsCameraReady(true);
-            console.log('Fallback camera started successfully');
             
             // Set up pose detection loop for fallback
             const detectPoseLoop = async () => {
@@ -199,12 +154,11 @@ export const usePoseDetection = () => {
           }
         } catch (fallbackError) {
           console.error('Fallback camera failed:', fallbackError);
-          throw new Error(`Camera access failed: ${fallbackError instanceof Error ? fallbackError.message : 'Unknown error'}`);
+          setIsCameraReady(false);
         }
       }
     } catch (error) {
       console.error('Error starting camera:', error);
-      setCameraError(error instanceof Error ? error.message : 'Failed to start camera');
       setIsCameraReady(false);
     }
   };
@@ -241,7 +195,6 @@ export const usePoseDetection = () => {
     setCurrentPose(null);
     setFormScore(0);
     setIsInExercisePosition(false);
-    setCameraError(null);
   };
 
   const analyzeForm = (landmarks: NormalizedLandmark[], exercise: string): FormFeedback | null => {
@@ -767,7 +720,6 @@ export const usePoseDetection = () => {
     stopCamera,
     detectPose,
     analyzeForm,
-    setExercise,
-    cameraError
+    setExercise
   };
 };
