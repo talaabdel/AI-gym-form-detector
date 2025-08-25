@@ -1,6 +1,6 @@
 # 💪 Spot Me Sis - AI Fitness Bestie
 
-A revolutionary mobile fitness app that provides real-time AI-powered form detection and personalized coaching to help women achieve their fitness goals with confidence and support.
+SMS is a mobile fitness app that provides real-time AI-powered form detection and personalized coaching to help women achieve their fitness goals with confidence and support.
 
 ## 🌟 What This App Does
 
